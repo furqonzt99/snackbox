@@ -45,3 +45,18 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, common.SuccessResponse(res))
 	}
 }
+
+func (p PartnerController) GetAllPartner() echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		res, err := p.Repo.GetAllPartner()
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.NewNotFoundResponse())
+		}
+
+		if len(res) == 0 {
+			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+		}
+		return c.JSON(http.StatusOK, common.SuccessResponse(res))
+	}
+}

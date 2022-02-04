@@ -7,6 +7,7 @@ import (
 
 type PartnerInterface interface {
 	RequestPartner(partner models.Partner) (models.Partner, error)
+	GetAllPartner() ([]models.Partner, error)
 }
 
 type PartnerRepository struct {
@@ -22,5 +23,16 @@ func (p *PartnerRepository) RequestPartner(partner models.Partner) (models.Partn
 	if err != nil {
 		return partner, err
 	}
+	return partner, nil
+}
+
+func (p *PartnerRepository) GetAllPartner() ([]models.Partner, error) {
+	var partner []models.Partner
+
+	err := p.db.Find(&partner).Error
+	if err != nil {
+		return nil, err
+	}
+
 	return partner, nil
 }
