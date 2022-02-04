@@ -1,6 +1,2 @@
 *.env
 *./*.env
-configs/
-configs/*
-utils/
-utils/*
