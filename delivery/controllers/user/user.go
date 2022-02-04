@@ -26,7 +26,7 @@ func (uscon UserController) RegisterController() echo.HandlerFunc {
 		c.Bind(&newUserReq)
 
 		if err := c.Validate(newUserReq); err != nil {
-			return c.JSON(http.StatusBadRequest, common.ErrorResponse(400, "data kurang lengkap"))
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
 		hash, _ := bcrypt.GenerateFromPassword([]byte(newUserReq.Password), 14)
