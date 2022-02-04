@@ -34,5 +34,5 @@ type PartnerResponse struct {
 	Address        float64 `json:"address"`
 	City           string  `json:"city"`
 	Legal_Document string  `json:"legal_document"`
-	status         string  `json:"status"`
+	Status         string  `json:"status"`
 }

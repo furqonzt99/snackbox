@@ -60,3 +60,16 @@ func (p PartnerController) GetAllPartner() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, common.SuccessResponse(res))
 	}
 }
+
+func (p PartnerController) DeletePartner() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userJwt, _ := middlewares.ExtractTokenUser(c)
+
+		err := p.Repo.DeletePartner(userJwt.UserID)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.NewNotFoundResponse())
+		}
+
+		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
+	}
+}

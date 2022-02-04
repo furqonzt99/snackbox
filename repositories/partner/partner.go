@@ -1,6 +1,8 @@
 package partner
 
 import (
+	"errors"
+
 	"github.com/furqonzt99/snackbox/models"
 	"gorm.io/gorm"
 )
@@ -8,6 +10,7 @@ import (
 type PartnerInterface interface {
 	RequestPartner(partner models.Partner) (models.Partner, error)
 	GetAllPartner() ([]models.Partner, error)
+	DeletePartner(userId int) error
 }
 
 type PartnerRepository struct {
@@ -35,4 +38,15 @@ func (p *PartnerRepository) GetAllPartner() ([]models.Partner, error) {
 	}
 
 	return partner, nil
+}
+
+func (p *PartnerRepository) DeletePartner(userId int) error {
+	var delete models.Partner
+
+	err := p.db.Where("user_id = ?", userId).Delete(&delete).Error
+	if err != nil {
+		return errors.New("gak ketemu idnya")
+	}
+	return nil
+
 }
