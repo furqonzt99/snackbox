@@ -11,6 +11,10 @@ type PartnerInterface interface {
 	RequestPartner(partner models.Partner) (models.Partner, error)
 	GetAllPartner() ([]models.Partner, error)
 	DeletePartner(userId int) error
+	FindPartnerId(id int) (models.Partner, error)
+	AcceptPartner(partner models.Partner) error
+	RejectPartner(partner models.Partner) error
+	// GetAllPartnerProduct()
 }
 
 type PartnerRepository struct {
@@ -49,4 +53,40 @@ func (p *PartnerRepository) DeletePartner(userId int) error {
 	}
 	return nil
 
+}
+
+func (p *PartnerRepository) FindPartnerId(id int) (models.Partner, error) {
+	var fond models.Partner
+
+	err := p.db.Where("id = ?", id).First(&fond).Error
+	if err != nil {
+		return fond, err
+	}
+	return fond, nil
+}
+
+func (p *PartnerRepository) AcceptPartner(partner models.Partner) error {
+
+	if partner.Status == "active" {
+		return errors.New("status already active")
+	}
+	partner.Status = "active"
+	err := p.db.Save(&partner).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *PartnerRepository) RejectPartner(partner models.Partner) error {
+
+	if partner.Status == "reject" {
+		return errors.New("status already reject")
+	}
+	partner.Status = "reject"
+	err := p.db.Save(&partner).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }

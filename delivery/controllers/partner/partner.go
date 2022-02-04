@@ -2,6 +2,7 @@ package partner
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/furqonzt99/snackbox/delivery/common"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
@@ -68,6 +69,44 @@ func (p PartnerController) DeletePartner() echo.HandlerFunc {
 		err := p.Repo.DeletePartner(userJwt.UserID)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, common.NewNotFoundResponse())
+		}
+
+		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
+	}
+}
+
+func (p PartnerController) AcceptPartner() echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		partnerId, _ := strconv.Atoi(c.Param("id"))
+
+		res, err := p.Repo.FindPartnerId(partnerId)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+		}
+
+		err2 := p.Repo.AcceptPartner(res)
+		if err2 != nil {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
+
+		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
+	}
+}
+
+func (p PartnerController) RejectPartner() echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		partnerId, _ := strconv.Atoi(c.Param("id"))
+
+		res, err := p.Repo.FindPartnerId(partnerId)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+		}
+
+		err2 := p.Repo.RejectPartner(res)
+		if err2 != nil {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
 		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
