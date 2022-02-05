@@ -3,6 +3,7 @@ package utils
 import (
 	config "github.com/furqonzt99/snackbox/configs"
 	"github.com/furqonzt99/snackbox/models"
+	"github.com/furqonzt99/snackbox/seeder"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -35,6 +36,8 @@ func InitialMigrate(db *gorm.DB) {
 		db.AutoMigrate(&models.Partner{})
 		db.AutoMigrate(&models.Rating{})
 		db.AutoMigrate(&models.Cashout{})
+
+		seeder.AdminSeeder(db)
 	} else {
 		db.AutoMigrate(&models.User{})
 		db.AutoMigrate(&models.Product{})
