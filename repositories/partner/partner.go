@@ -10,7 +10,6 @@ import (
 type PartnerInterface interface {
 	RequestPartner(partner models.Partner) (models.Partner, error)
 	GetAllPartner() ([]models.Partner, error)
-	DeletePartner(userId int) error
 	FindPartnerId(id int) (models.Partner, error)
 	AcceptPartner(partner models.Partner) error
 	RejectPartner(partner models.Partner) error
@@ -42,17 +41,6 @@ func (p *PartnerRepository) GetAllPartner() ([]models.Partner, error) {
 	}
 
 	return partner, nil
-}
-
-func (p *PartnerRepository) DeletePartner(userId int) error {
-	var delete models.Partner
-
-	err := p.db.Where("user_id = ?", userId).Delete(&delete).Error
-	if err != nil {
-		return errors.New("gak ketemu idnya")
-	}
-	return nil
-
 }
 
 func (p *PartnerRepository) FindPartnerId(id int) (models.Partner, error) {
