@@ -77,8 +77,13 @@ func (uscon UserController) LoginController() echo.HandlerFunc {
 
 		var token string
 
+		var partnerId int
+		if user.Partner.ID != 0 {
+			partnerId = int(user.Partner.ID)
+		}
+
 		if hash {
-			token, _ = middlewares.CreateToken(int(user.ID), user.Email, user.Role)
+			token, _ = middlewares.CreateToken(int(user.ID), partnerId, user.Email, user.Role)
 		}
 
 		return c.JSON(http.StatusOK, common.SuccessResponse(token))

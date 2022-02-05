@@ -32,6 +32,6 @@ type UserResponse struct {
 	Email   string  `json:"email"`
 	Address string  `json:"address"`
 	City    string  `json:"city"`
-	Balance float64 `json:"Balance"`
-	Role    string  `json:"Role"`
+	Balance float64 `json:"balance"`
+	Role    string  `json:"role"`
 }
