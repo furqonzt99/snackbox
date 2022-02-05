@@ -63,15 +63,28 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 func (p PartnerController) GetAllPartner() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		res, err := p.Repo.GetAllPartner()
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, common.NewNotFoundResponse())
-		}
-
+		res, _ := p.Repo.GetAllPartner()
 		if len(res) == 0 {
 			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 		}
-		return c.JSON(http.StatusOK, common.SuccessResponse(res))
+
+		responseFormat := []GetPartnerResponse{}
+
+		for _, data := range res {
+			responseFormat = append(responseFormat, GetPartnerResponse{
+				ID:            int(data.ID),
+				BussinessName: data.BussinessName,
+				Description:   data.Description,
+				Latitude:      data.Latitude,
+				Longtitude:    data.Longtitude,
+				Address:       data.Address,
+				City:          data.City,
+				LegalDocument: data.LegalDocument,
+				Status:        data.Status,
+			})
+		}
+
+		return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
 	}
 }
 

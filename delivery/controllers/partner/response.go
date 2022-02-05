@@ -36,3 +36,15 @@ type PartnerResponse struct {
 	LegalDocument string  `json:"legal_document"`
 	Status         string  `json:"status"`
 }
+
+type GetPartnerResponse struct {
+	ID int `json:"id"`
+	BussinessName string  `json:"bussiness_name"`
+	Description    string  `json:"description"`
+	Latitude       float64  `json:"latitude"`
+	Longtitude     float64  `json:"longtitude"`
+	Address        string `json:"address"`
+	City           string  `json:"city"`
+	LegalDocument string  `json:"legal_document"`
+	Status         string  `json:"status"`
+}
