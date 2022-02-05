@@ -12,6 +12,8 @@ type PartnerUserRequestFormat struct {
 	Description    string  `json:"description" form:"description" validate:"required"`
 	Latitude       float64 `json:"latitude" form:"latitude" validate:"required"`
 	Longtitude     float64 `json:"longtitude" form:"longtitude" validate:"required"`
+	Address string  `json:"address" form:"address" validate:"required"`
+	City string  `json:"city" form:"city" validate:"required"`
 	LegalDocument string  `json:"legal_document" form:"legal_document" validate:"required"`
 }
 

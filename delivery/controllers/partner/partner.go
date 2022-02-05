@@ -30,20 +30,33 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
-		var apply models.Partner
-		apply.UserID = uint(userJwt.UserID)
-		apply.BussinessName = partnerReq.BussinessName
-		apply.Description = partnerReq.Description
-		apply.Latitude = partnerReq.Latitude
-		apply.Longtitude = partnerReq.Longtitude
-		apply.LegalDocument = partnerReq.LegalDocument
+		var partner models.Partner
+		partner.UserID = uint(userJwt.UserID)
+		partner.BussinessName = partnerReq.BussinessName
+		partner.Description = partnerReq.Description
+		partner.Latitude = partnerReq.Latitude
+		partner.Longtitude = partnerReq.Longtitude
+		partner.Address = partnerReq.Address
+		partner.City = partnerReq.City
+		partner.LegalDocument = partnerReq.LegalDocument
 
-		res, err := p.Repo.RequestPartner(apply)
+		res, err := p.Repo.RequestPartner(partner)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, common.NewInternalServerErrorResponse())
 		}
 
-		return c.JSON(http.StatusOK, common.SuccessResponse(res))
+		responseFormat := PartnerResponse{
+			BussinessName: res.BussinessName,
+			Description:   res.Description,
+			Latitude:      res.Latitude,
+			Longtitude:    res.Longtitude,
+			Address:       res.Address,
+			City:          res.City,
+			LegalDocument: res.LegalDocument,
+			Status:        res.Status,
+		}
+
+		return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
 	}
 }
 
