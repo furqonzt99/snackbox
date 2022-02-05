@@ -90,3 +90,21 @@ func (p ProductController) PutProduct() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
 	}
 }
+
+func (p ProductController) DeleteProduct() echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		userJwt, _ := middlewares.ExtractTokenUser(c)
+
+		productId, _ := strconv.Atoi(c.Param("id"))
+
+		err := p.Repo.DeleteProduct(productId, userJwt.UserID)
+
+		if err != nil {
+			return c.JSON(http.StatusBadGateway, common.NewBadRequestResponse())
+		}
+
+		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
+
+	}
+}
