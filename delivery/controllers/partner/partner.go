@@ -32,11 +32,11 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 
 		var apply models.Partner
 		apply.UserID = uint(userJwt.UserID)
-		apply.BussinessName = partnerReq.Bussiness_Name
+		apply.BussinessName = partnerReq.BussinessName
 		apply.Description = partnerReq.Description
 		apply.Latitude = partnerReq.Latitude
 		apply.Longtitude = partnerReq.Longtitude
-		apply.LegalDocument = partnerReq.Legal_Document
+		apply.LegalDocument = partnerReq.LegalDocument
 
 		res, err := p.Repo.RequestPartner(apply)
 		if err != nil {

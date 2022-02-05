@@ -8,11 +8,11 @@ import (
 )
 
 type PartnerUserRequestFormat struct {
-	Bussiness_Name string  `json:"bussiness_name" form:"name" validate:"required"`
+	BussinessName string  `json:"bussiness_name" form:"name" validate:"required"`
 	Description    string  `json:"description" form:"description" validate:"required"`
 	Latitude       float64 `json:"latitude" form:"latitude" validate:"required"`
 	Longtitude     float64 `json:"longtitude" form:"longtitude" validate:"required"`
-	Legal_Document string  `json:"legal_document" form:"legal_document" validate:"required"`
+	LegalDocument string  `json:"legal_document" form:"legal_document" validate:"required"`
 }
 
 type PartnerValidator struct {
