@@ -14,4 +14,5 @@ func RegisterPartnerPath(e *echo.Echo, partnerCtrl *partner.PartnerController) {
 	e.DELETE("/partners", partnerCtrl.DeletePartner(), middleware.JWT([]byte(constants.JWT_SECRET_KEY)))
 	e.PUT("/partners/:id/accept", partnerCtrl.AcceptPartner())
 	e.PUT("/partners/:id/reject", partnerCtrl.RejectPartner())
+	// e.GET("/partners/:id", partnerCtrl.GetAllPartnerProduct())
 }

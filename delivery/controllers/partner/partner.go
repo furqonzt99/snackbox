@@ -112,3 +112,18 @@ func (p PartnerController) RejectPartner() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
 	}
 }
+
+// func (p PartnerController) GetAllPartnerProduct() echo.HandlerFunc {
+// 	return func(c echo.Context) error {
+// 		partnerId, _ := strconv.Atoi(c.Param("id"))
+// 		res, err := p.Repo.GetAllPartnerProduct()
+// 		if err != nil {
+// 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+// 		}
+// 		if len(res) == 0 {
+// 			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+// 		}
+
+// 		return c.JSON(http.StatusOK, common.SuccessResponse(res))
+// 	}
+// }

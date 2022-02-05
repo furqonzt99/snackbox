@@ -14,7 +14,7 @@ type PartnerInterface interface {
 	FindPartnerId(id int) (models.Partner, error)
 	AcceptPartner(partner models.Partner) error
 	RejectPartner(partner models.Partner) error
-	// GetAllPartnerProduct()
+	GetAllPartnerProduct() ([]models.Partner, error)
 }
 
 type PartnerRepository struct {
@@ -89,4 +89,14 @@ func (p *PartnerRepository) RejectPartner(partner models.Partner) error {
 		return err
 	}
 	return nil
+}
+
+func (p *PartnerRepository) GetAllPartnerProduct() ([]models.Partner, error) {
+	var partner []models.Partner
+
+	err := p.db.Preload("products").Find(&partner).Error
+	if err != nil {
+		return nil, err
+	}
+	return partner, nil
 }
