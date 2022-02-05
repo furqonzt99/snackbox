@@ -2,11 +2,13 @@ package product
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/furqonzt99/snackbox/delivery/common"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/furqonzt99/snackbox/repositories/product"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -48,5 +50,43 @@ func (p ProductController) AddProduct() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, common.SuccessResponse(response))
+	}
+}
+func (p ProductController) PutProduct() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userJwt, _ := middlewares.ExtractTokenUser(c)
+
+		productId, _ := strconv.Atoi(c.Param("id"))
+
+		fond, err := p.Repo.FindProduct(productId, userJwt.UserID)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+		}
+		var product UpdateProductRequestFormat
+		c.Bind(&product)
+
+		if err2 := c.Validate(product); err2 != nil {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
+		// var add models.Product
+		// fond.PartnerID = uint(userJwt.UserID)
+		fond.Title = product.Title
+		fond.Type = product.Type
+		fond.Description = product.Description
+		fond.Price = product.Price
+
+		_, err3 := p.Repo.AddProduct(fond)
+		if err3 != nil {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
+
+		// response := PartnerResponse{
+		// 	Title:       res.Title,
+		// 	Type:        res.Type,
+		// 	Description: res.Description,
+		// 	Price:       res.Price,
+		// }
+
+		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
 	}
 }
