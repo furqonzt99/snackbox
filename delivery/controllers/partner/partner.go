@@ -30,48 +30,61 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
-		var apply models.Partner
-		apply.UserID = uint(userJwt.UserID)
-		apply.BussinessName = partnerReq.Bussiness_Name
-		apply.Description = partnerReq.Description
-		apply.Latitude = partnerReq.Latitude
-		apply.Longtitude = partnerReq.Longtitude
-		apply.LegalDocument = partnerReq.Legal_Document
+		var partner models.Partner
+		partner.UserID = uint(userJwt.UserID)
+		partner.BussinessName = partnerReq.BussinessName
+		partner.Description = partnerReq.Description
+		partner.Latitude = partnerReq.Latitude
+		partner.Longtitude = partnerReq.Longtitude
+		partner.Address = partnerReq.Address
+		partner.City = partnerReq.City
+		partner.LegalDocument = partnerReq.LegalDocument
 
-		res, err := p.Repo.RequestPartner(apply)
+		res, err := p.Repo.RequestPartner(partner)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, common.ErrorResponse(400, "already exist"))
 		}
 
-		return c.JSON(http.StatusOK, common.SuccessResponse(res))
+		responseFormat := PartnerResponse{
+			BussinessName: res.BussinessName,
+			Description:   res.Description,
+			Latitude:      res.Latitude,
+			Longtitude:    res.Longtitude,
+			Address:       res.Address,
+			City:          res.City,
+			LegalDocument: res.LegalDocument,
+			Status:        res.Status,
+		}
+
+		return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
 	}
 }
 
 func (p PartnerController) GetAllPartner() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		res, err := p.Repo.GetAllPartner()
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, common.NewNotFoundResponse())
-		}
-
+		res, _ := p.Repo.GetAllPartner()
 		if len(res) == 0 {
 			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 		}
-		return c.JSON(http.StatusOK, common.SuccessResponse(res))
-	}
-}
 
-func (p PartnerController) DeletePartner() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		userJwt, _ := middlewares.ExtractTokenUser(c)
+		responseFormat := []GetPartnerResponse{}
 
-		err := p.Repo.DeletePartner(userJwt.UserID)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, common.NewNotFoundResponse())
+		for _, data := range res {
+			responseFormat = append(responseFormat, GetPartnerResponse{
+				ID:            int(data.ID),
+				BussinessName: data.BussinessName,
+				Description:   data.Description,
+				Latitude:      data.Latitude,
+				Longtitude:    data.Longtitude,
+				Address:       data.Address,
+				City:          data.City,
+				LegalDocument: data.LegalDocument,
+				Status:        data.Status,
+			})
 		}
 
-		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
+		return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
 	}
 }
 

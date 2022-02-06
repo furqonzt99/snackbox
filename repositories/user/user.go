@@ -31,7 +31,7 @@ func (ur *UserRepository) Register(newUser models.User) (models.User, error) {
 
 func (ur *UserRepository) Login(email string) (models.User, error) {
 	var user models.User
-	var err = ur.db.First(&user, "email = ?", email).Error
+	var err = ur.db.Preload("Partner").First(&user, "email = ?", email).Error
 	if err != nil {
 		return user, err
 	}
@@ -40,7 +40,7 @@ func (ur *UserRepository) Login(email string) (models.User, error) {
 
 func (ur *UserRepository) Get(userId int) (models.User, error) {
 	user := models.User{}
-	if err := ur.db.First(&user, userId).Error; err != nil {
+	if err := ur.db.Preload("Partner").First(&user, userId).Error; err != nil {
 		return user, err
 	}
 	return user, nil

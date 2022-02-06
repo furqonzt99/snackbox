@@ -10,10 +10,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func CreateToken(userId int, email, role string) (string, error) {
+func CreateToken(userId, partnerId int, email, role string) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
 	claims["userId"] = int(userId)
+	claims["partnerId"] = int(partnerId)
 	claims["email"] = email
 	claims["role"] = role
 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
@@ -26,10 +27,12 @@ func ExtractTokenUser(e echo.Context) (common.JWTPayload, error) {
 	if user.Valid {
 		claims := user.Claims.(jwt.MapClaims)
 		userId := claims["userId"].(float64)
+		partnerId := claims["partnerId"].(float64)
 		email := claims["email"]
 		role := claims["role"]
 		return common.JWTPayload{
 			UserID: int(userId),
+			PartnerID: int(partnerId),
 			Email:  email.(string),
 			Role:  role.(string),
 		}, nil

@@ -27,12 +27,24 @@ type DeleteUserResponseFormat struct {
 }
 
 type PartnerResponse struct {
-	Bussiness_Name string  `json:"bussiness_Name"`
+	BussinessName string  `json:"bussiness_name"`
 	Description    string  `json:"description"`
-	Latitude       string  `json:"latitude"`
-	Longtitude     string  `json:"longtitude"`
-	Address        float64 `json:"address"`
+	Latitude       float64  `json:"latitude"`
+	Longtitude     float64  `json:"longtitude"`
+	Address        string `json:"address"`
 	City           string  `json:"city"`
-	Legal_Document string  `json:"legal_document"`
+	LegalDocument string  `json:"legal_document"`
+	Status         string  `json:"status"`
+}
+
+type GetPartnerResponse struct {
+	ID int `json:"id"`
+	BussinessName string  `json:"bussiness_name"`
+	Description    string  `json:"description"`
+	Latitude       float64  `json:"latitude"`
+	Longtitude     float64  `json:"longtitude"`
+	Address        string `json:"address"`
+	City           string  `json:"city"`
+	LegalDocument string  `json:"legal_document"`
 	Status         string  `json:"status"`
 }
