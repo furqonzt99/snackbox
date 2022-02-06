@@ -40,7 +40,7 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 
 		res, err := p.Repo.RequestPartner(apply)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, common.NewInternalServerErrorResponse())
+			return c.JSON(http.StatusBadRequest, common.ErrorResponse(400, "already exist"))
 		}
 
 		return c.JSON(http.StatusOK, common.SuccessResponse(res))
