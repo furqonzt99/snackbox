@@ -27,33 +27,88 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 		c.Bind(&partnerReq)
 
 		if err := c.Validate(partnerReq); err != nil {
-			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+			return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
 		}
 
-		var partner models.Partner
-		partner.UserID = uint(userJwt.UserID)
-		partner.BussinessName = partnerReq.BussinessName
-		partner.Description = partnerReq.Description
-		partner.Latitude = partnerReq.Latitude
-		partner.Longtitude = partnerReq.Longtitude
-		partner.Address = partnerReq.Address
-		partner.City = partnerReq.City
-		partner.LegalDocument = partnerReq.LegalDocument
+		var res models.Partner
 
-		res, err := p.Repo.RequestPartner(partner)
+		user, err := p.Repo.FindUserId(userJwt.UserID)
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, common.ErrorResponse(400, "already exist"))
+			partnerData := models.Partner{
+				UserID:        uint(userJwt.UserID),
+				BussinessName: partnerReq.BussinessName,
+				Description:   partnerReq.Description,
+				Latitude:      partnerReq.Latitude,
+				Longtitude:    partnerReq.Longtitude,
+				Address:       partnerReq.Address,
+				City:          partnerReq.City,
+				LegalDocument: partnerReq.LegalDocument,
+			}
+
+			res, _ = p.Repo.ApplyPartner(partnerData)
+
+			responseFormat := PartnerResponse{
+				BussinessName: res.BussinessName,
+				Description:   res.Description,
+				Latitude:      res.Latitude,
+				Longtitude:    res.Longtitude,
+				Address:       res.Address,
+				City:          res.City,
+				LegalDocument: res.LegalDocument,
+				Status:        res.Status,
+			}
+
+			return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
+
 		}
+
+		if user.Status == "reject" {
+			user.BussinessName = partnerReq.BussinessName
+			user.Description = partnerReq.Description
+			user.Latitude = partnerReq.Latitude
+			user.Longtitude = partnerReq.Longtitude
+			user.Address = partnerReq.Address
+			user.City = partnerReq.City
+			user.LegalDocument = partnerReq.LegalDocument
+			user.Status = "pending"
+
+			res, _ = p.Repo.ApplyPartner(user)
+
+			responseFormat := PartnerResponse{
+				BussinessName: res.BussinessName,
+				Description:   res.Description,
+				Latitude:      res.Latitude,
+				Longtitude:    res.Longtitude,
+				Address:       res.Address,
+				City:          res.City,
+				LegalDocument: res.LegalDocument,
+				Status:        res.Status,
+			}
+			return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
+		}
+
+		// 	responseFormat := PartnerResponse{
+		// 		BussinessName: res.BussinessName,
+		// 		Description:   res.Description,
+		// 		Latitude:      res.Latitude,
+		// 		Longtitude:    res.Longtitude,
+		// 		Address:       res.Address,
+		// 		City:          res.City,
+		// 		LegalDocument: res.LegalDocument,
+		// 		Status:        res.Status,
+		// 	}
+		// 	return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
+		// }
 
 		responseFormat := PartnerResponse{
-			BussinessName: res.BussinessName,
-			Description:   res.Description,
-			Latitude:      res.Latitude,
-			Longtitude:    res.Longtitude,
-			Address:       res.Address,
-			City:          res.City,
-			LegalDocument: res.LegalDocument,
-			Status:        res.Status,
+			BussinessName: user.BussinessName,
+			Description:   user.Description,
+			Latitude:      user.Latitude,
+			Longtitude:    user.Longtitude,
+			Address:       user.Address,
+			City:          user.City,
+			LegalDocument: user.LegalDocument,
+			Status:        user.Status,
 		}
 
 		return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))

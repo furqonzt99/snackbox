@@ -9,6 +9,7 @@ type ProductInterface interface {
 	AddProduct(product models.Product) (models.Product, error)
 	FindProduct(productId, partnerId int) (models.Product, error)
 	DeleteProduct(productId, partnerId int) error
+	GetAllProduct() ([]models.Product, error)
 }
 
 type ProductRepository struct {
@@ -45,4 +46,14 @@ func (p *ProductRepository) DeleteProduct(productId, partnerId int) error {
 		return err
 	}
 	return nil
+}
+
+func (p *ProductRepository) GetAllProduct() ([]models.Product, error) {
+	var allProduct []models.Product
+
+	err := p.db.Find(&allProduct).Error
+	if err != nil {
+		return nil, err
+	}
+	return allProduct, nil
 }

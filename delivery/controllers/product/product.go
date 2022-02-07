@@ -80,13 +80,6 @@ func (p ProductController) PutProduct() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
-		// response := PartnerResponse{
-		// 	Title:       res.Title,
-		// 	Type:        res.Type,
-		// 	Description: res.Description,
-		// 	Price:       res.Price,
-		// }
-
 		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
 	}
 }
@@ -106,5 +99,18 @@ func (p ProductController) DeleteProduct() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
 
+	}
+}
+
+func (p ProductController) GetAllProduct() echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		allProduct, _ := p.Repo.GetAllProduct()
+
+		if len(allProduct) == 0 {
+			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+		}
+
+		return c.JSON(http.StatusOK, common.SuccessResponse(allProduct))
 	}
 }

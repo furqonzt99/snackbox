@@ -13,5 +13,6 @@ func RegisterProductPath(e *echo.Echo, productCtrl *product.ProductController) {
 	e.POST("/products", productCtrl.AddProduct(), middleware.JWT([]byte(constants.JWT_SECRET_KEY)), middlewares.CheckPartnerRole)
 	e.PUT("/products/:id", productCtrl.PutProduct(), middleware.JWT([]byte(constants.JWT_SECRET_KEY)), middlewares.CheckPartnerRole)
 	e.DELETE("/products/:id", productCtrl.DeleteProduct(), middleware.JWT([]byte(constants.JWT_SECRET_KEY)), middlewares.CheckPartnerRole)
+	e.GET("/products", productCtrl.GetAllProduct())
 
 }

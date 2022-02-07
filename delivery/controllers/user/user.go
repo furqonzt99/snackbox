@@ -58,19 +58,19 @@ func (uscon UserController) RegisterController() echo.HandlerFunc {
 
 func (uscon UserController) LoginController() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var login UserLoginRequestFormat
-		c.Bind(&login)
+		var loginUser UserLoginRequestFormat
+		c.Bind(&loginUser)
 
-		if err := c.Validate(login); err != nil {
+		if err := c.Validate(loginUser); err != nil {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
-		user, err := uscon.Repo.Login(login.Email)
+		user, err := uscon.Repo.Login(loginUser.Email)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, common.ErrorResponse(404, "User not found"))
 		}
 
-		hash, err := helper.Checkpwd(user.Password, login.Password)
+		hash, err := helper.Checkpwd(user.Password, loginUser.Password)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, common.ErrorResponse(403, "Wrong Password"))
 		}
@@ -108,7 +108,7 @@ func (uscon UserController) GetUserController() echo.HandlerFunc {
 func (uscon UserController) UpdateUserController() echo.HandlerFunc {
 
 	return func(c echo.Context) error {
-		user, _ := middlewares.ExtractTokenUser(c)
+		userJwt, _ := middlewares.ExtractTokenUser(c)
 
 		updateUserReq := PutUserRequestFormat{}
 		c.Bind(&updateUserReq)
@@ -120,25 +120,21 @@ func (uscon UserController) UpdateUserController() echo.HandlerFunc {
 		updateUser := models.User{}
 		updateUser.Email = updateUserReq.Email
 		updateUser.Name = updateUserReq.Name
+		updateUser.Address = updateUserReq.Address
+		updateUser.City = updateUserReq.City
 
 		if updateUserReq.Password != "" {
 			hash, _ := bcrypt.GenerateFromPassword([]byte(updateUserReq.Password), 14)
 			updateUser.Password = string(hash)
 		}
 
-		userData, err := uscon.Repo.Update(updateUser, user.UserID)
+		_, err := uscon.Repo.Update(updateUser, userJwt.UserID)
 
 		if err != nil {
 			return c.JSON(http.StatusNotFound, common.ErrorResponse(404, "User not found"))
 		}
 
-		data := UserResponse{
-			ID:    uint(user.UserID),
-			Name:  userData.Name,
-			Email: userData.Email,
-		}
-
-		return c.JSON(http.StatusOK, common.SuccessResponse(data))
+		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
 	}
 }
 
