@@ -23,6 +23,7 @@ func InitDB(config *config.AppConfig) *gorm.DB {
 
 func InitialMigrate(db *gorm.DB) {
 	if config.Mode == "development" {
+		db.Migrator().DropTable(&models.DetailTransaction{})
 		db.Migrator().DropTable(&models.Transaction{})
 		db.Migrator().DropTable(&models.Product{})
 		db.Migrator().DropTable(&models.Rating{})
