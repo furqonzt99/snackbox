@@ -68,8 +68,7 @@ func (p ProductController) PutProduct() echo.HandlerFunc {
 		if err2 := c.Validate(product); err2 != nil {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
-		// var add models.Product
-		// fond.PartnerID = uint(userJwt.UserID)
+
 		fond.Title = product.Title
 		fond.Type = product.Type
 		fond.Description = product.Description
@@ -112,5 +111,29 @@ func (p ProductController) GetAllProduct() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, common.SuccessResponse(allProduct))
+	}
+}
+
+func (p ProductController) SearchProduct() echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		search := c.QueryParam("search")
+
+		product, err := p.Repo.SearchProduct(search)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.NewNotFoundResponse())
+		}
+
+		res := []ProductResponse{}
+		for _, item := range product {
+			res = append(res, ProductResponse{
+				Title:       item.Title,
+				Type:        item.Type,
+				Description: item.Description,
+				Price:       item.Price,
+			})
+		}
+
+		return c.JSON(http.StatusOK, common.SuccessResponse(res))
 	}
 }

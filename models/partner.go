@@ -13,5 +13,5 @@ type Partner struct {
 	City          string
 	LegalDocument string
 	Status        string `gorm:"default:pending"`
-	Product       []Product
+	Products      []Product
 }

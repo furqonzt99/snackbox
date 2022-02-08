@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/furqonzt99/snackbox/delivery/common"
+	"github.com/furqonzt99/snackbox/delivery/controllers/product"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/furqonzt99/snackbox/repositories/partner"
@@ -168,17 +169,38 @@ func (p PartnerController) RejectPartner() echo.HandlerFunc {
 	}
 }
 
-// func (p PartnerController) GetAllPartnerProduct() echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		partnerId, _ := strconv.Atoi(c.Param("id"))
-// 		res, err := p.Repo.GetAllPartnerProduct()
-// 		if err != nil {
-// 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-// 		}
-// 		if len(res) == 0 {
-// 			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
-// 		}
+func (p PartnerController) GetPartner() echo.HandlerFunc {
+	return func(c echo.Context) error {
 
-// 		return c.JSON(http.StatusOK, common.SuccessResponse(res))
-// 	}
-// }
+		partnerId, _ := strconv.Atoi(c.Param("id"))
+
+		partner, err := p.Repo.GetPartner(partnerId)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, common.ErrorResponse(400, err.Error()))
+		}
+
+		productItems := []product.ProductResponse{}
+		for _, item := range partner.Products {
+			productItems = append(productItems, product.ProductResponse{
+				Title:       item.Title,
+				Type:        item.Type,
+				Description: item.Description,
+				Price:       item.Price,
+			})
+		}
+
+		response := GetPartnerProductResponse{
+			ID:            int(partner.ID),
+			BussinessName: partner.BussinessName,
+			Description:   partner.Description,
+			Latitude:      partner.Latitude,
+			Longtitude:    partner.Longtitude,
+			Address:       partner.Address,
+			City:          partner.City,
+			Products:      productItems,
+		}
+
+		return c.JSON(http.StatusOK, common.SuccessResponse(response))
+	}
+
+}
