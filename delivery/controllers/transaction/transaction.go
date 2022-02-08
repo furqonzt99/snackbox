@@ -265,9 +265,9 @@ func (tc TransactionController) GetOne(c echo.Context) error {
 	data := models.Transaction{}
 
 	if user.PartnerID != 0 {
-		data, err = tc.Repo.GetOne(trxID, user.PartnerID)
+		data, err = tc.Repo.GetOneForPartner(trxID, user.PartnerID)
 	} else {
-		data, err = tc.Repo.GetOne(trxID, user.UserID)
+		data, err = tc.Repo.GetOneForUser(trxID, user.UserID)
 	}
 
 	if err != nil {
