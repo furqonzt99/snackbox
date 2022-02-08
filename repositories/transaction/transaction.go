@@ -14,7 +14,8 @@ type TransactionInterface interface {
 	Confirm(trxID, userID int) (models.Transaction, error)
 	GetAllForPartner(partnerID int) ([]models.Transaction, error)
 	GetAllForUser(userID int) ([]models.Transaction, error)
-	GetOne(trxID, userOrPartnerID int) (models.Transaction, error)
+	GetOneForUser(trxID, userID int) (models.Transaction, error)
+	GetOneForPartner(trxID, partnerID int) (models.Transaction, error)
 
 	GetPartnerFromProduct(productID int) (models.Partner, error)
 	Callback(invId string, transaction models.Transaction) (models.Transaction, error)
@@ -170,7 +171,9 @@ func (tr *TransactionRepository) Confirm(trxID int, userID int) (models.Transact
 func (tr *TransactionRepository) GetAllForPartner(partnerID int) ([]models.Transaction, error) {
 	trx := []models.Transaction{}
 
-	if err := tr.db.Where("partner_id = ?", partnerID).Find(&trx).Error; err != nil {
+	const PAID_STATUS = "PAID"
+
+	if err := tr.db.Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).Find(&trx).Error; err != nil {
 		return nil, err
 	}
 
@@ -187,10 +190,22 @@ func (tr *TransactionRepository) GetAllForUser(userID int) ([]models.Transaction
 	return trx, nil
 }
 
-func (tr *TransactionRepository) GetOne(trxID, userOrPartnerID int) (models.Transaction, error) {
+func (tr *TransactionRepository) GetOneForUser(trxID, userID int) (models.Transaction, error) {
 	trx := models.Transaction{}
 
-	if err := tr.db.Where("user_id = ? OR partner_id = ?", userOrPartnerID, userOrPartnerID).First(&trx, trxID).Error; err != nil {
+	if err := tr.db.Where("user_id = ?", userID).First(&trx, trxID).Error; err != nil {
+		return trx, err
+	}
+
+	return trx, nil
+}
+
+func (tr *TransactionRepository) GetOneForPartner(trxID, partnerID int) (models.Transaction, error) {
+	trx := models.Transaction{}
+
+	const PAID_STATUS = "PAID"
+
+	if err := tr.db.Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).First(&trx, trxID).Error; err != nil {
 		return trx, err
 	}
 
