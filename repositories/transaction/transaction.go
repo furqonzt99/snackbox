@@ -79,8 +79,8 @@ func (tr *TransactionRepository) Order(transaction models.Transaction, email str
 func (tr *TransactionRepository) Accept(trxID int, partnerID int) (models.Transaction, error)  {
 	trx := models.Transaction{}
 
-	const PENDING_STATUS = "pending"
-	if err := tr.db.Where("partner_id = ? AND status = ?", partnerID, PENDING_STATUS).First(&trx, trxID).Error; err != nil {
+	const PAID_STATUS = "PAID"
+	if err := tr.db.Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).First(&trx, trxID).Error; err != nil {
 		return trx, err
 	}
 
@@ -93,8 +93,8 @@ func (tr *TransactionRepository) Accept(trxID int, partnerID int) (models.Transa
 func (tr *TransactionRepository) Reject(trxID int, partnerID int) (models.Transaction, error)  {
 	trx := models.Transaction{}
 
-	const PENDING_STATUS = "pending"
-	if err := tr.db.Where("partner_id = ? AND status = ?", partnerID, PENDING_STATUS).First(&trx, trxID).Error; err != nil {
+	const PAID_STATUS = "PAID"
+	if err := tr.db.Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).First(&trx, trxID).Error; err != nil {
 		return trx, err
 	}
 
