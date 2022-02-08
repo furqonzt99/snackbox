@@ -16,7 +16,7 @@ type DeleteUserResponseFormat struct {
 	Message string `json:"message"`
 }
 
-type PartnerResponse struct {
+type ProductResponse struct {
 	Title       string  `json:"title"`
 	Type        string  `json:"type"`
 	Description string  `json:"description"`

@@ -42,7 +42,7 @@ func (p ProductController) AddProduct() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
-		response := PartnerResponse{
+		response := ProductResponse{
 			Title:       res.Title,
 			Type:        res.Type,
 			Description: res.Description,
