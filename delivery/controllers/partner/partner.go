@@ -87,19 +87,6 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 			return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
 		}
 
-		// 	responseFormat := PartnerResponse{
-		// 		BussinessName: res.BussinessName,
-		// 		Description:   res.Description,
-		// 		Latitude:      res.Latitude,
-		// 		Longtitude:    res.Longtitude,
-		// 		Address:       res.Address,
-		// 		City:          res.City,
-		// 		LegalDocument: res.LegalDocument,
-		// 		Status:        res.Status,
-		// 	}
-		// 	return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
-		// }
-
 		responseFormat := PartnerResponse{
 			BussinessName: user.BussinessName,
 			Description:   user.Description,
