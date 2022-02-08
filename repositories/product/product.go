@@ -9,6 +9,8 @@ type ProductInterface interface {
 	AddProduct(product models.Product) (models.Product, error)
 	FindProduct(productId, partnerId int) (models.Product, error)
 	DeleteProduct(productId, partnerId int) error
+	GetAllProduct() ([]models.Product, error)
+	SearchProduct(product string) ([]models.Product, error)
 }
 
 type ProductRepository struct {
@@ -45,4 +47,24 @@ func (p *ProductRepository) DeleteProduct(productId, partnerId int) error {
 		return err
 	}
 	return nil
+}
+
+func (p *ProductRepository) GetAllProduct() ([]models.Product, error) {
+	var products []models.Product
+
+	err := p.db.Preload("Partner").Find(&products).Error
+	if err != nil {
+		return nil, err
+	}
+	return products, nil
+}
+
+func (p *ProductRepository) SearchProduct(product string) ([]models.Product, error) {
+
+	var products []models.Product
+	err := p.db.Where("title LIKE ?", "%"+product+"%").Find(&products).Error
+	if err != nil {
+		return nil, err
+	}
+	return products, nil
 }

@@ -48,7 +48,7 @@ func (ur *UserRepository) Get(userId int) (models.User, error) {
 
 func (ur *UserRepository) Update(newUser models.User, userId int) (models.User, error) {
 	user := models.User{}
-	if err := ur.db.First(&user, "id=?", userId).Error; err != nil {
+	if err := ur.db.First(&user, userId).Error; err != nil {
 		return newUser, err
 	}
 	ur.db.Model(&user).Updates(newUser)
@@ -57,7 +57,7 @@ func (ur *UserRepository) Update(newUser models.User, userId int) (models.User, 
 
 func (ur *UserRepository) Delete(userId int) (models.User, error) {
 	user := models.User{}
-	if err := ur.db.First(&user, "id=?", userId).Error; err != nil {
+	if err := ur.db.First(&user, userId).Error; err != nil {
 		return user, err
 	}
 	ur.db.Delete(&user)

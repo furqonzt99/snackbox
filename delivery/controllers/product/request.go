@@ -10,14 +10,14 @@ import (
 type RegisterProductRequestFormat struct {
 	Title       string  `json:"title" form:"title" validate:"required"`
 	Type        string  `json:"type" form:"type" validate:"required"`
-	Description string  `json:"description" form:"description" validate:"required"`
+	Description string  `json:"description" form:"description"`
 	Price       float64 `json:"price" form:"price" validate:"required"`
 }
 
 type UpdateProductRequestFormat struct {
 	Title       string  `json:"title" form:"title" validate:"required"`
 	Type        string  `json:"type" form:"type" validate:"required"`
-	Description string  `json:"description" form:"description" validate:"required"`
+	Description string  `json:"description" form:"description"`
 	Price       float64 `json:"price" form:"price" validate:"required"`
 }
 type ProductValidator struct {

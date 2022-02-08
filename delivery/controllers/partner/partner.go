@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/furqonzt99/snackbox/delivery/common"
+	"github.com/furqonzt99/snackbox/delivery/controllers/product"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/furqonzt99/snackbox/repositories/partner"
@@ -27,33 +28,75 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 		c.Bind(&partnerReq)
 
 		if err := c.Validate(partnerReq); err != nil {
-			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+			return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
 		}
 
-		var partner models.Partner
-		partner.UserID = uint(userJwt.UserID)
-		partner.BussinessName = partnerReq.BussinessName
-		partner.Description = partnerReq.Description
-		partner.Latitude = partnerReq.Latitude
-		partner.Longtitude = partnerReq.Longtitude
-		partner.Address = partnerReq.Address
-		partner.City = partnerReq.City
-		partner.LegalDocument = partnerReq.LegalDocument
+		var res models.Partner
 
-		res, err := p.Repo.RequestPartner(partner)
+		user, err := p.Repo.FindUserId(userJwt.UserID)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, common.NewInternalServerErrorResponse())
+			partnerData := models.Partner{
+				UserID:        uint(userJwt.UserID),
+				BussinessName: partnerReq.BussinessName,
+				Description:   partnerReq.Description,
+				Latitude:      partnerReq.Latitude,
+				Longtitude:    partnerReq.Longtitude,
+				Address:       partnerReq.Address,
+				City:          partnerReq.City,
+				LegalDocument: partnerReq.LegalDocument,
+			}
+
+			res, _ = p.Repo.ApplyPartner(partnerData)
+
+			responseFormat := PartnerResponse{
+				BussinessName: res.BussinessName,
+				Description:   res.Description,
+				Latitude:      res.Latitude,
+				Longtitude:    res.Longtitude,
+				Address:       res.Address,
+				City:          res.City,
+				LegalDocument: res.LegalDocument,
+				Status:        res.Status,
+			}
+
+			return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
+
+		}
+
+		if user.Status == "reject" {
+			user.BussinessName = partnerReq.BussinessName
+			user.Description = partnerReq.Description
+			user.Latitude = partnerReq.Latitude
+			user.Longtitude = partnerReq.Longtitude
+			user.Address = partnerReq.Address
+			user.City = partnerReq.City
+			user.LegalDocument = partnerReq.LegalDocument
+			user.Status = "pending"
+
+			res, _ = p.Repo.ApplyPartner(user)
+
+			responseFormat := PartnerResponse{
+				BussinessName: res.BussinessName,
+				Description:   res.Description,
+				Latitude:      res.Latitude,
+				Longtitude:    res.Longtitude,
+				Address:       res.Address,
+				City:          res.City,
+				LegalDocument: res.LegalDocument,
+				Status:        res.Status,
+			}
+			return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
 		}
 
 		responseFormat := PartnerResponse{
-			BussinessName: res.BussinessName,
-			Description:   res.Description,
-			Latitude:      res.Latitude,
-			Longtitude:    res.Longtitude,
-			Address:       res.Address,
-			City:          res.City,
-			LegalDocument: res.LegalDocument,
-			Status:        res.Status,
+			BussinessName: user.BussinessName,
+			Description:   user.Description,
+			Latitude:      user.Latitude,
+			Longtitude:    user.Longtitude,
+			Address:       user.Address,
+			City:          user.City,
+			LegalDocument: user.LegalDocument,
+			Status:        user.Status,
 		}
 
 		return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
@@ -126,17 +169,38 @@ func (p PartnerController) RejectPartner() echo.HandlerFunc {
 	}
 }
 
-// func (p PartnerController) GetAllPartnerProduct() echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		partnerId, _ := strconv.Atoi(c.Param("id"))
-// 		res, err := p.Repo.GetAllPartnerProduct()
-// 		if err != nil {
-// 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-// 		}
-// 		if len(res) == 0 {
-// 			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
-// 		}
+func (p PartnerController) GetPartner() echo.HandlerFunc {
+	return func(c echo.Context) error {
 
-// 		return c.JSON(http.StatusOK, common.SuccessResponse(res))
-// 	}
-// }
+		partnerId, _ := strconv.Atoi(c.Param("id"))
+
+		partner, err := p.Repo.GetPartner(partnerId)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, common.ErrorResponse(400, err.Error()))
+		}
+
+		productItems := []product.ProductResponse{}
+		for _, item := range partner.Products {
+			productItems = append(productItems, product.ProductResponse{
+				Title:       item.Title,
+				Type:        item.Type,
+				Description: item.Description,
+				Price:       item.Price,
+			})
+		}
+
+		response := GetPartnerProductResponse{
+			ID:            int(partner.ID),
+			BussinessName: partner.BussinessName,
+			Description:   partner.Description,
+			Latitude:      partner.Latitude,
+			Longtitude:    partner.Longtitude,
+			Address:       partner.Address,
+			City:          partner.City,
+			Products:      productItems,
+		}
+
+		return c.JSON(http.StatusOK, common.SuccessResponse(response))
+	}
+
+}
