@@ -9,8 +9,9 @@ type Partner struct {
 	Description   string
 	Latitude      float64
 	Longtitude    float64
-	Address 	  string
-	City 		  string
+	Address       string
+	City          string
 	LegalDocument string
 	Status        string `gorm:"default:pending"`
+	Product       []Product
 }

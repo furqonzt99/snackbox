@@ -24,20 +24,20 @@ func (p ProductController) AddProduct() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userJwt, _ := middlewares.ExtractTokenUser(c)
 
-		var product RegisterProductRequestFormat
-		c.Bind(&product)
+		var productReq RegisterProductRequestFormat
+		c.Bind(&productReq)
 
-		if err := c.Validate(product); err != nil {
+		if err := c.Validate(productReq); err != nil {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
-		var add models.Product
-		add.PartnerID = uint(userJwt.UserID)
-		add.Title = product.Title
-		add.Type = product.Type
-		add.Description = product.Description
-		add.Price = product.Price
+		var product models.Product
+		product.PartnerID = uint(userJwt.PartnerID)
+		product.Title = productReq.Title
+		product.Type = productReq.Type
+		product.Description = productReq.Description
+		product.Price = productReq.Price
 
-		res, err := p.Repo.AddProduct(add)
+		res, err := p.Repo.AddProduct(product)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}

@@ -64,11 +64,15 @@ func (p *PartnerRepository) FindUserId(userId int) (models.Partner, error) {
 
 func (p *PartnerRepository) AcceptPartner(partner models.Partner) error {
 
+	var user models.User
 	partner.Status = "active"
 	err := p.db.Save(&partner).Error
 	if err != nil {
 		return err
 	}
+	p.db.First(&user, "id = ?", partner.UserID)
+	user.Role = "partner"
+	p.db.Save(&user)
 	return nil
 }
 
