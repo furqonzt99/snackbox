@@ -4,11 +4,13 @@ import (
 	config "github.com/furqonzt99/snackbox/configs"
 	"github.com/furqonzt99/snackbox/delivery/controllers/partner"
 	"github.com/furqonzt99/snackbox/delivery/controllers/product"
+	"github.com/furqonzt99/snackbox/delivery/controllers/transaction"
 	"github.com/furqonzt99/snackbox/delivery/controllers/user"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
 	"github.com/furqonzt99/snackbox/delivery/routes"
 	pt "github.com/furqonzt99/snackbox/repositories/partner"
 	pd "github.com/furqonzt99/snackbox/repositories/product"
+	tr "github.com/furqonzt99/snackbox/repositories/transaction"
 	ur "github.com/furqonzt99/snackbox/repositories/user"
 	"github.com/furqonzt99/snackbox/utils"
 	"github.com/go-playground/validator/v10"
@@ -27,10 +29,12 @@ func main() {
 	userRepo := ur.NewUserRepo(db)
 	partnerRepo := pt.NewPartnerRepo(db)
 	productRepo := pd.NewProductRepo(db)
+	transactionRepo := tr.NewTransactionRepository(db)
 	//controller
 	userCtrl := user.NewUsersControllers(userRepo)
 	partnerCtrl := partner.NewPartnerController(partnerRepo)
 	productCtrl := product.NewProductController(productRepo)
+	transactionController := transaction.NewTransactionController(transactionRepo)
 
 	//echo package
 	e := echo.New()
@@ -41,11 +45,13 @@ func main() {
 	e.Validator = &user.UserValidator{Validator: validator.New()}
 	e.Validator = &partner.PartnerValidator{Validator: validator.New()}
 	e.Validator = &product.ProductValidator{Validator: validator.New()}
+	e.Validator = &transaction.TransactionValidator{Validator: validator.New()}
 
 	//routes
 	routes.RegisterUserPath(e, userCtrl)
 	routes.RegisterPartnerPath(e, partnerCtrl)
 	routes.RegisterProductPath(e, productCtrl)
+	routes.RegisterTransactionPath(e, transactionController)
 
 	e.Logger.Fatal(e.Start(":" + config.Port))
 }
