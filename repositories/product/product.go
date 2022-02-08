@@ -50,13 +50,13 @@ func (p *ProductRepository) DeleteProduct(productId, partnerId int) error {
 }
 
 func (p *ProductRepository) GetAllProduct() ([]models.Product, error) {
-	var allProduct []models.Product
+	var products []models.Product
 
-	err := p.db.Find(&allProduct).Error
+	err := p.db.Preload("Partner").Find(&products).Error
 	if err != nil {
 		return nil, err
 	}
-	return allProduct, nil
+	return products, nil
 }
 
 func (p *ProductRepository) SearchProduct(product string) ([]models.Product, error) {
