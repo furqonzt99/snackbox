@@ -23,12 +23,12 @@ func InitDB(config *config.AppConfig) *gorm.DB {
 
 func InitialMigrate(db *gorm.DB) {
 	if config.Mode == "development" {
-		db.Migrator().DropTable(&models.User{})
-		db.Migrator().DropTable(&models.Product{})
 		db.Migrator().DropTable(&models.Transaction{})
-		db.Migrator().DropTable(&models.Partner{})
+		db.Migrator().DropTable(&models.Product{})
 		db.Migrator().DropTable(&models.Rating{})
 		db.Migrator().DropTable(&models.Cashout{})
+		db.Migrator().DropTable(&models.Partner{})
+		db.Migrator().DropTable(&models.User{})
 
 		db.AutoMigrate(&models.User{})
 		db.AutoMigrate(&models.Product{})
@@ -38,6 +38,9 @@ func InitialMigrate(db *gorm.DB) {
 		db.AutoMigrate(&models.Cashout{})
 
 		seeder.AdminSeeder(db)
+		seeder.UserSeeder(db)
+		seeder.PartnerSeeder(db)
+		seeder.ProductSeeder(db)
 	} else {
 		db.AutoMigrate(&models.User{})
 		db.AutoMigrate(&models.Product{})
