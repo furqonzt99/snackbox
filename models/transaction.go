@@ -23,7 +23,7 @@ type Transaction struct {
 	PaymentChannel string
 	PaymentMethod string
 	PaidAt time.Time `gorm:"default:null"`
-	Status string `gorm:"default:pending"`
+	Status string `gorm:"default:PENDING"`
 	User User
 	Partner Partner
 	Products []Product `gorm:"many2many:detail_transactions;"`

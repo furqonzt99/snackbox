@@ -84,7 +84,7 @@ func (tr *TransactionRepository) Accept(trxID int, partnerID int) (models.Transa
 		return trx, err
 	}
 
-	const ACCEPT_STATUS = "accept"
+	const ACCEPT_STATUS = "ACCEPT"
 	tr.db.Model(&trx).Update("status", ACCEPT_STATUS)
 
 	return trx, nil
@@ -100,7 +100,7 @@ func (tr *TransactionRepository) Reject(trxID int, partnerID int) (models.Transa
 
 	tr.db.Transaction(func(tx *gorm.DB) error {
 
-		const REJECT_STATUS = "reject"
+		const REJECT_STATUS = "REJECT"
 		if err := tx.Model(&trx).Update("status", REJECT_STATUS).Error; err != nil {
 			return err
 		}
@@ -124,12 +124,12 @@ func (tr *TransactionRepository) Reject(trxID int, partnerID int) (models.Transa
 func (tr *TransactionRepository) Send(trxID int, partnerID int) (models.Transaction, error)  {
 	trx := models.Transaction{}
 
-	const ACCEPT_STATUS = "accept"
+	const ACCEPT_STATUS = "ACCEPT"
 	if err := tr.db.Where("partner_id = ? AND status = ?", partnerID, ACCEPT_STATUS).First(&trx, trxID).Error; err != nil {
 		return trx, err
 	}
 
-	const SEND_STATUS = "send"
+	const SEND_STATUS = "SEND"
 	tr.db.Model(&trx).Update("status", SEND_STATUS)
 
 	return trx, nil
@@ -138,15 +138,15 @@ func (tr *TransactionRepository) Send(trxID int, partnerID int) (models.Transact
 func (tr *TransactionRepository) Confirm(trxID int, userID int) (models.Transaction, error)  {
 	trx := models.Transaction{}
 
-	const SEND_STATUS = "send"
+	const SEND_STATUS = "SEND"
 	if err := tr.db.Where("user_id = ? AND status = ?", userID, SEND_STATUS).First(&trx, trxID).Error; err != nil {
 		return trx, err
 	}
 
 	tr.db.Transaction(func(tx *gorm.DB) error {
 
-		const CONFIRM_STATUS = "confirm"
-		if err := tx.Update("status", CONFIRM_STATUS).Error; err != nil {
+		const CONFIRM_STATUS = "CONFIRM"
+		if err := tx.First(&trx, trxID).Update("status", CONFIRM_STATUS).Error; err != nil {
 			return err
 		}
 
@@ -156,8 +156,7 @@ func (tr *TransactionRepository) Confirm(trxID int, userID int) (models.Transact
 		}
 
 		user := models.User{}
-
-		if err := tx.Model(&user).Where("id = ?", partner.UserID).Update("balance", trx.TotalPrice).Error; err != nil {
+		if err := tx.First(&user, "id = ?", partner.UserID).Model(&user).Update("balance", trx.TotalPrice).Error; err != nil {
 			return err
 		}
 
@@ -232,7 +231,7 @@ func (tr *TransactionRepository) Callback(invId string, transaction models.Trans
 
 	var trx models.Transaction
 
-	if err := tr.db.Where("invoice_id = ?", invId).First(&trx).Error; err != nil {
+	if err := tr.db.First(&trx, "invoice_id = ?", invId).Error; err != nil {
 		return transaction, err
 	}
 

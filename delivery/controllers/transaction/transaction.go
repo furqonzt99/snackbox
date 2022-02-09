@@ -100,7 +100,7 @@ func (tc *TransactionController) Order(c echo.Context) error {
 
 func (tc TransactionController) Callback(c echo.Context) error {
 
-	var callbackRequest common.CallbackRequest
+	var callbackRequest common.TransactionCallbackRequest
 	if err := c.Bind(&callbackRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
@@ -113,7 +113,7 @@ func (tc TransactionController) Callback(c echo.Context) error {
 
 	_, err := tc.Repo.Callback(callbackRequest.ExternalID, data)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewNotFoundResponse())
+		return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 	}
 
 	return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
@@ -191,7 +191,7 @@ func (tc TransactionController) Confirm(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
-	_, err = tc.Repo.Confirm(trxID, user.PartnerID)
+	_, err = tc.Repo.Confirm(trxID, user.UserID)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 	}
