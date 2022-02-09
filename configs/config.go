@@ -7,6 +7,7 @@ import (
 	"github.com/furqonzt99/snackbox/constants"
 	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
+	"github.com/xendit/xendit-go"
 )
 
 type AppConfig struct {
@@ -55,6 +56,8 @@ func initConfig() *AppConfig {
 
 	constants.JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
 	constants.XENDIT_CALLBACK_TOKEN = os.Getenv("XENDIT_CALLBACK_TOKEN")
+
+	xendit.Opt.SecretKey = os.Getenv("XENDIT_SECRET_KEY")
 
 	Mode = os.Getenv("MODE")
 
