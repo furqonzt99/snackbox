@@ -26,11 +26,12 @@ type ProductResponse struct {
 }
 
 type GetProductWithPartnerResponse struct {
+	Id          uint    `json:"id"`
 	Title       string  `json:"title"`
 	Type        string  `json:"type"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
-	Partner     GetPartnerResponse
+	// Partner     GetPartnerResponse
 }
 
 type GetPartnerResponse struct {

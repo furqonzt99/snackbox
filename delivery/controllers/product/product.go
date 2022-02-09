@@ -116,18 +116,19 @@ func (p ProductController) GetAllProduct() echo.HandlerFunc {
 		productWithPartner := []GetProductWithPartnerResponse{}
 		for _, item := range allProduct {
 			productWithPartner = append(productWithPartner, GetProductWithPartnerResponse{
+				Id:          item.ID,
 				Title:       item.Title,
 				Type:        item.Type,
 				Description: item.Description,
 				Price:       item.Price,
-				Partner: GetPartnerResponse{
-					BussinessName: item.Partner.BussinessName,
-					Description:   item.Partner.Description,
-					Latitude:      item.Partner.Latitude,
-					Longtitude:    item.Partner.Longtitude,
-					Address:       item.Partner.Address,
-					City:          item.Partner.City,
-				},
+				// Partner: GetPartnerResponse{
+				// 	BussinessName: item.Partner.BussinessName,
+				// 	Description:   item.Partner.Description,
+				// 	Latitude:      item.Partner.Latitude,
+				// 	Longtitude:    item.Partner.Longtitude,
+				// 	Address:       item.Partner.Address,
+				// 	City:          item.Partner.City,
+				// },
 			})
 		}
 
