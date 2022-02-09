@@ -8,14 +8,14 @@ import (
 
 func UserSeeder(db *gorm.DB)  {
 	password, _ := helper.Hashpwd("1234qwer")
-	user1 := models.User{
-		Name:         "User 1",
-		Email:        "user1@gmail.com",
+	user := models.User{
+		Name:         "User 2",
+		Email:        "user2@gmail.com",
 		Password:     password,
-		Address:      "Jl Matraman No 13",
+		Address:      "Jl Garuda No 13",
 		City:         "Jakarta",
 		Balance:      0,
 	}
 
-	db.Create(&user1)
+	db.Create(&user)
 }

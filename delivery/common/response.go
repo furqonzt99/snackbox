@@ -97,3 +97,11 @@ func NewStatusNotAcceptable() DefaultResponse {
 		"Not Accepted",
 	}
 }
+
+//NewNotFoundResponse default not found error response
+func NewUnauthorizeResponse() DefaultResponse {
+	return DefaultResponse{
+		401,
+		"Unauthorize",
+	}
+}
