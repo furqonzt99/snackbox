@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/furqonzt99/snackbox/delivery/common"
+	"github.com/furqonzt99/snackbox/delivery/controllers/partner"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
 	"github.com/furqonzt99/snackbox/helper"
 	"github.com/furqonzt99/snackbox/models"
@@ -33,26 +34,26 @@ func (uscon UserController) RegisterController() echo.HandlerFunc {
 		newUser := models.User{
 			Name:     newUserReq.Name,
 			Email:    newUserReq.Email,
-			Address:  newUserReq.Address,
-			City:     newUserReq.City,
 			Password: string(hash),
+			City:     newUserReq.City,
+			Address:  newUserReq.Address,
 		}
 
-		res, err := uscon.Repo.Register(newUser)
+		_, err := uscon.Repo.Register(newUser)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, common.ErrorResponse(406, "Email already exist"))
 		}
 
-		data := UserResponse{
-			ID:      res.ID,
-			Name:    res.Name,
-			Email:   res.Email,
-			Address: res.Address,
-			City:    res.City,
-			Balance: res.Balance,
-			Role:    res.Role,
-		}
-		return c.JSON(http.StatusOK, common.SuccessResponse(data))
+		// data := UserResponse{
+		// 	ID:      res.ID,
+		// 	Name:    res.Name,
+		// 	Email:   res.Email,
+		// 	Address: res.Address,
+		// 	City:    res.City,
+		// 	Balance: res.Balance,
+		// 	Role:    res.Role,
+		// }
+		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
 	}
 }
 
@@ -72,7 +73,7 @@ func (uscon UserController) LoginController() echo.HandlerFunc {
 
 		hash, err := helper.Checkpwd(user.Password, loginUser.Password)
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, common.ErrorResponse(403, "Wrong Password"))
+			return c.JSON(http.StatusBadRequest, common.ErrorResponse(400, "Wrong Password"))
 		}
 
 		var token string
@@ -96,14 +97,30 @@ func (uscon UserController) GetUserController() echo.HandlerFunc {
 
 		user, _ := uscon.Repo.Get(userJwt.UserID)
 
-		data := UserResponse{
+		if user.Partner.ID == 0 {
+			data := UserProfileResponse{
+				ID:      user.ID,
+				Email:   user.Email,
+				Name:    user.Name,
+				Balance: user.Balance,
+			}
+			return c.JSON(http.StatusOK, common.SuccessResponse(data))
+		}
+
+		data := UserProfileResponseWithPartner{
 			ID:      user.ID,
 			Name:    user.Name,
 			Email:   user.Email,
-			Address: user.Address,
-			City:    user.City,
 			Balance: user.Balance,
-			Role:    user.Role,
+			Partner: partner.GetPartnerProfileResponse{
+				ID:            int(user.Partner.ID),
+				BussinessName: user.Partner.BussinessName,
+				Description:   user.Partner.Description,
+				Latitude:      user.Partner.Latitude,
+				Longtitude:    user.Partner.Longtitude,
+				LegalDocument: user.Partner.LegalDocument,
+				Status:        user.Partner.Status,
+			},
 		}
 		return c.JSON(http.StatusOK, common.SuccessResponse(data))
 	}
@@ -135,7 +152,7 @@ func (uscon UserController) UpdateUserController() echo.HandlerFunc {
 		_, err := uscon.Repo.Update(updateUser, userJwt.UserID)
 
 		if err != nil {
-			return c.JSON(http.StatusNotFound, common.ErrorResponse(404, "User not found"))
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
 		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())

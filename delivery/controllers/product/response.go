@@ -27,11 +27,11 @@ type ProductResponse struct {
 
 type GetProductWithPartnerResponse struct {
 	Id          uint    `json:"id"`
+	PartnerID   uint    `json:"partner_id"`
 	Title       string  `json:"title"`
 	Type        string  `json:"type"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
-	// Partner     GetPartnerResponse
 }
 
 type GetPartnerResponse struct {
@@ -41,6 +41,4 @@ type GetPartnerResponse struct {
 	Longtitude    float64 `json:"longtitude"`
 	Address       string  `json:"address"`
 	City          string  `json:"city"`
-	// LegalDocument string  `json:"legal_document"`
-	// Status        string  `json:"status"`
 }

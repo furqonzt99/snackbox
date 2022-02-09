@@ -56,9 +56,11 @@ func (p ProductController) PutProduct() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userJwt, _ := middlewares.ExtractTokenUser(c)
 
-		productId, _ := strconv.Atoi(c.Param("id"))
-
-		fond, err := p.Repo.FindProduct(productId, userJwt.UserID)
+		productId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
+		updateProduct, err := p.Repo.FindProduct(productId, userJwt.UserID)
 		if err != nil {
 			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 		}
@@ -69,12 +71,12 @@ func (p ProductController) PutProduct() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
-		fond.Title = product.Title
-		fond.Type = product.Type
-		fond.Description = product.Description
-		fond.Price = product.Price
+		updateProduct.Title = product.Title
+		updateProduct.Type = product.Type
+		updateProduct.Description = product.Description
+		updateProduct.Price = product.Price
 
-		_, err3 := p.Repo.AddProduct(fond)
+		_, err3 := p.Repo.AddProduct(updateProduct)
 		if err3 != nil {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
@@ -88,12 +90,14 @@ func (p ProductController) DeleteProduct() echo.HandlerFunc {
 
 		userJwt, _ := middlewares.ExtractTokenUser(c)
 
-		productId, _ := strconv.Atoi(c.Param("id"))
-
-		err := p.Repo.DeleteProduct(productId, userJwt.UserID)
-
+		productId, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
-			return c.JSON(http.StatusBadGateway, common.NewBadRequestResponse())
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
+
+		err = p.Repo.DeleteProduct(productId, userJwt.UserID)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 		}
 
 		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
@@ -104,51 +108,36 @@ func (p ProductController) DeleteProduct() echo.HandlerFunc {
 func (p ProductController) GetAllProduct() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		allProduct, _ := p.Repo.GetAllProduct()
+		page, err := strconv.Atoi(c.QueryParam("page"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 
-		if len(allProduct) == 0 {
-			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 		}
 
-		// partner := GetPartnerResponse{}
-		// for _, item := range
-
-		productWithPartner := []GetProductWithPartnerResponse{}
-		for _, item := range allProduct {
-			productWithPartner = append(productWithPartner, GetProductWithPartnerResponse{
-				Id:          item.ID,
-				Title:       item.Title,
-				Type:        item.Type,
-				Description: item.Description,
-				Price:       item.Price,
-				// Partner: GetPartnerResponse{
-				// 	BussinessName: item.Partner.BussinessName,
-				// 	Description:   item.Partner.Description,
-				// 	Latitude:      item.Partner.Latitude,
-				// 	Longtitude:    item.Partner.Longtitude,
-				// 	Address:       item.Partner.Address,
-				// 	City:          item.Partner.City,
-				// },
-			})
+		perpage, err := strconv.Atoi(c.QueryParam("perpage"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
-
-		return c.JSON(http.StatusOK, common.SuccessResponse(productWithPartner))
-	}
-}
-
-func (p ProductController) SearchProduct() echo.HandlerFunc {
-	return func(c echo.Context) error {
 
 		search := c.QueryParam("search")
 
-		product, err := p.Repo.SearchProduct(search)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, common.NewNotFoundResponse())
+		if page == 0 {
+			page = 1
 		}
 
-		res := []ProductResponse{}
-		for _, item := range product {
-			res = append(res, ProductResponse{
+		if perpage == 0 {
+			perpage = 10
+		}
+
+		offset := (page - 1) * perpage
+
+		allProduct, _ := p.Repo.GetAllProduct(offset, perpage, search)
+
+		productData := []GetProductWithPartnerResponse{}
+		for _, item := range allProduct {
+			productData = append(productData, GetProductWithPartnerResponse{
+				Id:          item.ID,
+				PartnerID:   item.PartnerID,
 				Title:       item.Title,
 				Type:        item.Type,
 				Description: item.Description,
@@ -156,6 +145,6 @@ func (p ProductController) SearchProduct() echo.HandlerFunc {
 			})
 		}
 
-		return c.JSON(http.StatusOK, common.SuccessResponse(res))
+		return c.JSON(http.StatusOK, common.PaginationResponse(page, perpage, productData))
 	}
 }
