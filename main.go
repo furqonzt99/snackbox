@@ -2,6 +2,7 @@ package main
 
 import (
 	config "github.com/furqonzt99/snackbox/configs"
+	"github.com/furqonzt99/snackbox/delivery/controllers/cashout"
 	"github.com/furqonzt99/snackbox/delivery/controllers/partner"
 	"github.com/furqonzt99/snackbox/delivery/controllers/product"
 	"github.com/furqonzt99/snackbox/delivery/controllers/rating"
@@ -9,6 +10,7 @@ import (
 	"github.com/furqonzt99/snackbox/delivery/controllers/user"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
 	"github.com/furqonzt99/snackbox/delivery/routes"
+	cr "github.com/furqonzt99/snackbox/repositories/cashout"
 	pt "github.com/furqonzt99/snackbox/repositories/partner"
 	pd "github.com/furqonzt99/snackbox/repositories/product"
 	rr "github.com/furqonzt99/snackbox/repositories/rating"
@@ -33,12 +35,15 @@ func main() {
 	productRepo := pd.NewProductRepo(db)
 	transactionRepo := tr.NewTransactionRepository(db)
 	ratingRepo := rr.NewRatingRepository(db)
+	cashoutRepo := cr.NewCashoutRepository(db)
+
 	//controller
 	userCtrl := user.NewUsersControllers(userRepo)
 	partnerCtrl := partner.NewPartnerController(partnerRepo)
 	productCtrl := product.NewProductController(productRepo)
 	transactionController := transaction.NewTransactionController(transactionRepo)
 	ratingController := rating.NewRatingController(ratingRepo)
+	cashoutController := cashout.NewCashoutController(cashoutRepo)
 
 	//echo package
 	e := echo.New()
@@ -51,6 +56,7 @@ func main() {
 	e.Validator = &product.ProductValidator{Validator: validator.New()}
 	e.Validator = &transaction.TransactionValidator{Validator: validator.New()}
 	e.Validator = &rating.RatingValidator{Validator: validator.New()}
+	e.Validator = &cashout.CashoutValidator{Validator: validator.New()}
 
 	//routes
 	routes.RegisterUserPath(e, userCtrl)
@@ -58,6 +64,7 @@ func main() {
 	routes.RegisterProductPath(e, productCtrl)
 	routes.RegisterTransactionPath(e, transactionController)
 	routes.RegisterRatingPath(e, ratingController)
+	routes.RegisterCashoutPath(e, cashoutController)
 
 	e.Logger.Fatal(e.Start(":" + config.Port))
 }
