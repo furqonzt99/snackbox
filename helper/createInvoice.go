@@ -1,15 +1,12 @@
 package helper
 
 import (
-	"os"
-
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/xendit/xendit-go"
 	"github.com/xendit/xendit-go/invoice"
 )
 
 func CreateInvoice(transaction models.Transaction, email string) (models.Transaction, error) {
-	xendit.Opt.SecretKey = os.Getenv("XENDIT_SECRET_KEY")
 
 	items := []xendit.InvoiceItem{}
 
