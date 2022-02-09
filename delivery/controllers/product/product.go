@@ -110,7 +110,28 @@ func (p ProductController) GetAllProduct() echo.HandlerFunc {
 			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 		}
 
-		return c.JSON(http.StatusOK, common.SuccessResponse(allProduct))
+		// partner := GetPartnerResponse{}
+		// for _, item := range
+
+		productWithPartner := []GetProductWithPartnerResponse{}
+		for _, item := range allProduct {
+			productWithPartner = append(productWithPartner, GetProductWithPartnerResponse{
+				Title:       item.Title,
+				Type:        item.Type,
+				Description: item.Description,
+				Price:       item.Price,
+				Partner: GetPartnerResponse{
+					BussinessName: item.Partner.BussinessName,
+					Description:   item.Partner.Description,
+					Latitude:      item.Partner.Latitude,
+					Longtitude:    item.Partner.Longtitude,
+					Address:       item.Partner.Address,
+					City:          item.Partner.City,
+				},
+			})
+		}
+
+		return c.JSON(http.StatusOK, common.SuccessResponse(productWithPartner))
 	}
 }
 

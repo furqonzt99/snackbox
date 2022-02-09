@@ -97,9 +97,13 @@ func (uscon UserController) GetUserController() echo.HandlerFunc {
 		user, _ := uscon.Repo.Get(userJwt.UserID)
 
 		data := UserResponse{
-			ID:    user.ID,
-			Name:  user.Name,
-			Email: user.Email,
+			ID:      user.ID,
+			Name:    user.Name,
+			Email:   user.Email,
+			Address: user.Address,
+			City:    user.City,
+			Balance: user.Balance,
+			Role:    user.Role,
 		}
 		return c.JSON(http.StatusOK, common.SuccessResponse(data))
 	}
