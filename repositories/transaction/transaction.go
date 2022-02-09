@@ -146,7 +146,7 @@ func (tr *TransactionRepository) Confirm(trxID int, userID int) (models.Transact
 	tr.db.Transaction(func(tx *gorm.DB) error {
 
 		const CONFIRM_STATUS = "confirm"
-		if err := tx.Update("status", CONFIRM_STATUS).Error; err != nil {
+		if err := tx.First(&trx, trxID).Update("status", CONFIRM_STATUS).Error; err != nil {
 			return err
 		}
 
@@ -156,8 +156,7 @@ func (tr *TransactionRepository) Confirm(trxID int, userID int) (models.Transact
 		}
 
 		user := models.User{}
-
-		if err := tx.Model(&user).Where("id = ?", partner.UserID).Update("balance", trx.TotalPrice).Error; err != nil {
+		if err := tx.First(&user, "id = ?", partner.UserID).Model(&user).Update("balance", trx.TotalPrice).Error; err != nil {
 			return err
 		}
 
@@ -232,7 +231,7 @@ func (tr *TransactionRepository) Callback(invId string, transaction models.Trans
 
 	var trx models.Transaction
 
-	if err := tr.db.Where("invoice_id = ?", invId).First(&trx).Error; err != nil {
+	if err := tr.db.First(&trx, "invoice_id = ?", invId).Error; err != nil {
 		return transaction, err
 	}
 
