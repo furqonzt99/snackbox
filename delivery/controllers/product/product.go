@@ -1,13 +1,19 @@
 package product
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
+	"github.com/furqonzt99/snackbox/constants"
 	"github.com/furqonzt99/snackbox/delivery/common"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
+	"github.com/furqonzt99/snackbox/helper"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/furqonzt99/snackbox/repositories/product"
+	"github.com/google/uuid"
+	"github.com/h2non/filetype"
 
 	"github.com/labstack/echo/v4"
 )
@@ -44,6 +50,7 @@ func (p ProductController) AddProduct() echo.HandlerFunc {
 
 		response := ProductResponse{
 			Title:       res.Title,
+			Image: 		 res.Image,
 			Type:        res.Type,
 			Description: res.Description,
 			Price:       res.Price,
@@ -108,17 +115,8 @@ func (p ProductController) DeleteProduct() echo.HandlerFunc {
 func (p ProductController) GetAllProduct() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		page, err := strconv.Atoi(c.QueryParam("page"))
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-
-		}
-
-		perpage, err := strconv.Atoi(c.QueryParam("perpage"))
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-		}
-
+		page, _ := strconv.Atoi(c.QueryParam("page"))
+		perpage, _ := strconv.Atoi(c.QueryParam("perpage"))
 		search := c.QueryParam("search")
 
 		if page == 0 {
@@ -135,10 +133,15 @@ func (p ProductController) GetAllProduct() echo.HandlerFunc {
 
 		productData := []GetProductWithPartnerResponse{}
 		for _, item := range allProduct {
+			var productImage string
+			if item.Image != "" { 
+				productImage = fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, item.Image)
+			}
 			productData = append(productData, GetProductWithPartnerResponse{
 				Id:          item.ID,
 				PartnerID:   item.PartnerID,
 				Title:       item.Title,
+				Image: 		 productImage,
 				Type:        item.Type,
 				Description: item.Description,
 				Price:       item.Price,
@@ -147,4 +150,72 @@ func (p ProductController) GetAllProduct() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, common.PaginationResponse(page, perpage, productData))
 	}
+}
+
+func (pc ProductController) Upload(c echo.Context) error {
+
+	productID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+	}
+
+	var requestUpload UpdateProductRequestFormat
+
+	if err := c.Bind(&requestUpload); err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	user, err := middlewares.ExtractTokenUser(c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+	
+	product, err := pc.Repo.FindProduct(productID, user.PartnerID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+	}
+	
+	file, err := c.FormFile("image")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	src, err := file.Open()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+	defer src.Close()
+
+	head := make([]byte, 261)
+  	src.Read(head)
+
+	kind, _ := filetype.Match(head)
+
+	if !filetype.IsImage(head) {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "file type must an image"))
+	}
+
+	fileID := strings.ReplaceAll(uuid.New().String(), "-", "")
+	file.Filename = fmt.Sprint(fileID, ".", kind.Extension)
+
+	if product.Image != "" {
+		if err := helper.GetObjectS3(product.Image); err == nil {
+			_ = helper.DeleteObjectS3(product.Image)
+		}
+	}
+
+	if err := helper.UploadObjectS3(file.Filename, src); err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	productData := models.Product{
+		Image: file.Filename,
+	}
+
+	_, err = pc.Repo.UploadImage(productID, productData)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
 }
