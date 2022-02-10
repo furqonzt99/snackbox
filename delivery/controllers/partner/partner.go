@@ -36,7 +36,7 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 		c.Bind(&partnerReq)
 
 		if err := c.Validate(partnerReq); err != nil {
-			return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
 		var res models.Partner
@@ -112,9 +112,9 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 func (p PartnerController) GetAllPartner() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		res, _ := p.Repo.GetAllPartner()
-		if len(res) == 0 {
-			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+		res, err := p.Repo.GetAllPartner()
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
 		responseFormat := []GetPartnerResponse{}
@@ -140,15 +140,15 @@ func (p PartnerController) GetAllPartner() echo.HandlerFunc {
 func (p PartnerController) AcceptPartner() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		partnerId, _ := strconv.Atoi(c.Param("id"))
-
-		res, err := p.Repo.FindPartnerId(partnerId)
+		partnerId, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
-			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
-		err2 := p.Repo.AcceptPartner(res)
-		if err2 != nil {
+		res, _ := p.Repo.FindPartnerId(partnerId)
+
+		err = p.Repo.AcceptPartner(res)
+		if err != nil {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
@@ -159,12 +159,12 @@ func (p PartnerController) AcceptPartner() echo.HandlerFunc {
 func (p PartnerController) RejectPartner() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		partnerId, _ := strconv.Atoi(c.Param("id"))
-
-		res, err := p.Repo.FindPartnerId(partnerId)
+		partnerId, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
-			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
+
+		res, _ := p.Repo.FindPartnerId(partnerId)
 
 		err2 := p.Repo.RejectPartner(res)
 		if err2 != nil {
@@ -178,12 +178,12 @@ func (p PartnerController) RejectPartner() echo.HandlerFunc {
 func (p PartnerController) GetPartner() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		partnerId, _ := strconv.Atoi(c.Param("id"))
-
-		partner, err := p.Repo.GetPartner(partnerId)
+		partnerId, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
-			return c.JSON(http.StatusNotFound, common.ErrorResponse(400, err.Error()))
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
+
+		partner, _ := p.Repo.GetPartner(partnerId)
 
 		productItems := []product.ProductResponse{}
 		for _, item := range partner.Products {
