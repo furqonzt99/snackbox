@@ -145,6 +145,10 @@ func (p PartnerController) AcceptPartner() echo.HandlerFunc {
 
 		res, _ := p.Repo.FindPartnerId(partnerId)
 
+		if res.Status == "reject" {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
+
 		err = p.Repo.AcceptPartner(res)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
@@ -164,8 +168,12 @@ func (p PartnerController) RejectPartner() echo.HandlerFunc {
 
 		res, _ := p.Repo.FindPartnerId(partnerId)
 
-		err2 := p.Repo.RejectPartner(res)
-		if err2 != nil {
+		if res.Status == "active" {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
+
+		err = p.Repo.RejectPartner(res)
+		if err != nil {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 

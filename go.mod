@@ -5,10 +5,13 @@ go 1.17
 require gorm.io/driver/mysql v1.2.3
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
 require (
@@ -36,6 +39,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo/v4 v4.6.3
 	github.com/labstack/gommon v0.3.1
+	github.com/stretchr/testify v1.7.0
 	github.com/xendit/xendit-go v1.0.5
 	gorm.io/gorm v1.22.4
 )
