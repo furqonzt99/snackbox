@@ -15,6 +15,7 @@ type PartnerInterface interface {
 	RejectPartner(partner models.Partner) error
 	GetAllPartnerProduct() ([]models.Partner, error)
 	UploadDocument(partnerID int, partner models.Partner) (models.Partner, error)
+	Report(partnerId int) ([]models.Transaction, error)
 }
 
 type PartnerRepository struct {
@@ -75,7 +76,7 @@ func (p *PartnerRepository) FindUserId(userId int) (models.Partner, error) {
 	if err != nil {
 		return partner, err
 	}
-	
+
 	return partner, nil
 }
 
@@ -129,4 +130,14 @@ func (p *PartnerRepository) GetPartner(partnerId int) (models.Partner, error) {
 		return partner, err
 	}
 	return partner, nil
+}
+
+func (p *PartnerRepository) Report(partnerId int) ([]models.Transaction, error) {
+
+	var transaction []models.Transaction
+	err := p.db.Order("created_at desc").Where("status <> ? AND status <> ?", "PENDING", "UNPAID").Preload("User").Preload("Partner").Preload("Products").Find(&transaction, "partner_id = ?", partnerId).Error
+	if err != nil {
+		return transaction, err
+	}
+	return transaction, nil
 }

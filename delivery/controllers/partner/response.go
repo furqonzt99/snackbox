@@ -1,6 +1,8 @@
 package partner
 
 import (
+	"time"
+
 	"github.com/furqonzt99/snackbox/delivery/controllers/product"
 	"github.com/furqonzt99/snackbox/models"
 )
@@ -71,4 +73,18 @@ type GetPartnerProfileResponse struct {
 	Longtitude    float64 `json:"longtitude"`
 	LegalDocument string  `json:"legal_document"`
 	Status        string  `json:"status"`
+}
+
+type ReportResponse struct {
+	CreateAt         time.Time              `json:"create_at"`
+	InvoiceId        string                 `json:"invoice_id"`
+	TotalTransaction float64                `json:"total_transaction"`
+	Quantity         int                    `json:"quantity"`
+	PaymentChannel   string                 `json:"payment_channel"`
+	Status           string                 `json:"status"`
+	Products         []ProductTitleResponse `json:"products"`
+}
+
+type ProductTitleResponse struct {
+	Title string `json:"title"`
 }

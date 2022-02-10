@@ -16,4 +16,6 @@ func RegisterPartnerPath(e *echo.Echo, partnerCtrl *partner.PartnerController) {
 	e.PUT("/partners/submission/:id/reject", partnerCtrl.RejectPartner(), middleware.JWT([]byte(constants.JWT_SECRET_KEY)), middlewares.CheckAdminRole)
 	e.GET("/partners/:id", partnerCtrl.GetPartner(), middleware.JWT([]byte(constants.JWT_SECRET_KEY)))
 	e.POST("/partners/submission/upload", partnerCtrl.Upload, middleware.JWT([]byte(constants.JWT_SECRET_KEY)), middlewares.CheckUserRole)
+	e.GET("/partners/report", partnerCtrl.Report(), middleware.JWT([]byte(constants.JWT_SECRET_KEY)))
+
 }

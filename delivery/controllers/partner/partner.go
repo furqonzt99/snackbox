@@ -296,3 +296,37 @@ func (pc PartnerController) Upload(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
 }
+
+func (p PartnerController) Report() echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		userJwt, _ := middlewares.ExtractTokenUser(c)
+		res, err := p.Repo.Report(userJwt.PartnerID)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+		}
+
+		responses := []ReportResponse{}
+		for _, item := range res {
+			responsesItem := []ProductTitleResponse{}
+			for _, data := range item.Products {
+				responsesItem = append(responsesItem, ProductTitleResponse{
+					Title: data.Title,
+				})
+			}
+
+			responses = append(responses, ReportResponse{
+				CreateAt:         item.CreatedAt,
+				InvoiceId:        item.InvoiceID,
+				TotalTransaction: item.TotalPrice,
+				Quantity:         item.Quantity,
+				PaymentChannel:   item.PaymentChannel,
+				Status:           item.Status,
+				Products:         responsesItem,
+			})
+
+		}
+		return c.JSON(http.StatusOK, common.SuccessResponse(responses))
+	}
+
+}
