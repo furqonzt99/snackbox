@@ -228,16 +228,16 @@ func (pc PartnerController) Upload(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
-	
+
 	partner, err := pc.Repo.FindUserId(user.UserID)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 	}
-	
+
 	if partner.Status == "active" || partner.Status == "pending" {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
-	
+
 	file, err := c.FormFile("legal_document")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
@@ -250,7 +250,7 @@ func (pc PartnerController) Upload(c echo.Context) error {
 	defer src.Close()
 
 	head := make([]byte, 261)
-  	src.Read(head)
+	src.Read(head)
 
 	kind, _ := filetype.Match(head)
 
@@ -276,7 +276,7 @@ func (pc PartnerController) Upload(c echo.Context) error {
 	const PENDING_STATUS = "pending"
 	partnerData := models.Partner{
 		LegalDocument: file.Filename,
-		Status: PENDING_STATUS,
+		Status:        PENDING_STATUS,
 	}
 
 	_, err = pc.Repo.UploadDocument(int(partner.ID), partnerData)
