@@ -10,7 +10,7 @@ type Cashout struct {
 	BankCode string
 	AccountHolderName string
 	AccountNumber string
-	Amount string
+	Amount float64
 	Description string
 	Status string
 	User User

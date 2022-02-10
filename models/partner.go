@@ -4,11 +4,14 @@ import "gorm.io/gorm"
 
 type Partner struct {
 	gorm.Model
-	UserID uint
+	UserID        uint `gorm:"unique"`
 	BussinessName string
-	Description string
-	Latitude float64
-	Longtitude float64
+	Description   string
+	Latitude      float64
+	Longtitude    float64
+	Address       string
+	City          string
 	LegalDocument string
-	Status string
+	Status        string `gorm:"default:pending"`
+	Products      []Product
 }
