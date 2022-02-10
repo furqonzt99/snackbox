@@ -6,17 +6,15 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/furqonzt99/snackbox/constants"
 	"github.com/furqonzt99/snackbox/delivery/common"
 	"github.com/furqonzt99/snackbox/delivery/controllers/product"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
+	"github.com/furqonzt99/snackbox/helper"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/furqonzt99/snackbox/repositories/partner"
 	"github.com/google/uuid"
+	"github.com/h2non/filetype"
 	"github.com/labstack/echo/v4"
 )
 
@@ -62,7 +60,7 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 				Longtitude:    res.Longtitude,
 				Address:       res.Address,
 				City:          res.City,
-				LegalDocument: res.LegalDocument,
+				LegalDocument: fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, res.LegalDocument),
 				Status:        res.Status,
 			}
 
@@ -88,7 +86,7 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 				Longtitude:    res.Longtitude,
 				Address:       res.Address,
 				City:          res.City,
-				LegalDocument: res.LegalDocument,
+				LegalDocument: fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, res.LegalDocument),
 				Status:        res.Status,
 			}
 			return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
@@ -101,7 +99,7 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 			Longtitude:    user.Longtitude,
 			Address:       user.Address,
 			City:          user.City,
-			LegalDocument: user.LegalDocument,
+			LegalDocument: fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, res.LegalDocument),
 			Status:        user.Status,
 		}
 
@@ -128,7 +126,7 @@ func (p PartnerController) GetAllPartner() echo.HandlerFunc {
 				Longtitude:    data.Longtitude,
 				Address:       data.Address,
 				City:          data.City,
-				LegalDocument: data.LegalDocument,
+				LegalDocument: fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, data.LegalDocument),
 				Status:        data.Status,
 			})
 		}
@@ -215,11 +213,7 @@ func (pc PartnerController) Upload(c echo.Context) error {
 	var requestUpload UploadDocumentRequest
 
 	if err := c.Bind(&requestUpload); err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
-
-	if err := c.Validate(&requestUpload); err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
 	user, err := middlewares.ExtractTokenUser(c)
@@ -247,29 +241,29 @@ func (pc PartnerController) Upload(c echo.Context) error {
 	}
 	defer src.Close()
 
-	fmt.Println(c.Request().Header.Get("Content-Type"))
+	head := make([]byte, 261)
+  	src.Read(head)
+
+	kind, _ := filetype.Match(head)
+
+	const ACCEPTED_FILE_TYPE = "pdf"
+
+	if kind.Extension != ACCEPTED_FILE_TYPE {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "extension must .pdf"))
+	}
 
 	fileID := strings.ReplaceAll(uuid.New().String(), "-", "")
-	file.Filename = fmt.Sprint(fileID, "-", file.Filename)
+	file.Filename = fmt.Sprint(fileID, ".", kind.Extension)
 
-	sess, err := session.NewSession(&aws.Config{
-        Region: aws.String(constants.S3_REGION),
-		Credentials: credentials.NewStaticCredentials(constants.AWS_ACCESS_KEY_ID, constants.AWS_ACCESS_SECRET_KEY, ""),
-	})
+	if partner.LegalDocument != "" {
+		if err := helper.GetObjectS3(partner.LegalDocument); err == nil {
+			_ = helper.DeleteObjectS3(partner.LegalDocument)
+		}
+	}
 
-	if err != nil {
-        return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-    }
-	uploader := s3manager.NewUploader(sess)
-
-	_, err = uploader.Upload(&s3manager.UploadInput{
-        Bucket: aws.String(constants.S3_BUCKET),
-        Key: aws.String(file.Filename),
-        Body: src,
-    })
-    if err != nil {
-        return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-    }
+	if err := helper.UploadObjectS3(file.Filename, src); err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
 
 	const PENDING_STATUS = "pending"
 	partnerData := models.Partner{

@@ -17,7 +17,7 @@ type PartnerUserRequestFormat struct {
 }
 
 type UploadDocumentRequest struct {
-	LegalDocument string  `json:"legal_document" form:"legal_document" validate:"required"`
+	LegalDocument string `form:"legal_document" validate:"required"`
 }
 
 type PartnerValidator struct {

@@ -61,6 +61,7 @@ func initConfig() *AppConfig {
 	constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
 	constants.S3_REGION = os.Getenv("S3_REGION")
 	constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+	constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
 
 	xendit.Opt.SecretKey = os.Getenv("XENDIT_SECRET_KEY")
 
