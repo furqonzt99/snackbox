@@ -79,7 +79,8 @@ func (uscon UserController) LoginController() echo.HandlerFunc {
 		var token string
 
 		var partnerId int
-		if user.Partner.ID != 0 {
+		const STATUS_ACTIVE = "active"
+		if user.Partner.ID != 0 && user.Partner.Status == STATUS_ACTIVE {
 			partnerId = int(user.Partner.ID)
 		}
 
