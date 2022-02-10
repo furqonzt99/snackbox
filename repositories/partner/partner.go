@@ -67,13 +67,20 @@ func (p *PartnerRepository) AcceptPartner(partner models.Partner) error {
 
 	var user models.User
 	partner.Status = "active"
-	err := p.db.Save(&partner).Error
+	var err error
+	p.db.Transaction(func(tx *gorm.DB) error {
+		err = tx.Save(&partner).Error
+		if err != nil {
+			return err
+		}
+		tx.First(&user, "id = ?", partner.UserID)
+		user.Role = "partner"
+		tx.Save(&user)
+		return nil
+	})
 	if err != nil {
 		return err
 	}
-	p.db.First(&user, "id = ?", partner.UserID)
-	user.Role = "partner"
-	p.db.Save(&user)
 	return nil
 }
 
