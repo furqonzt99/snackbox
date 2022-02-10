@@ -1,14 +1,20 @@
 package partner
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
+	"github.com/furqonzt99/snackbox/constants"
 	"github.com/furqonzt99/snackbox/delivery/common"
 	"github.com/furqonzt99/snackbox/delivery/controllers/product"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
+	"github.com/furqonzt99/snackbox/helper"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/furqonzt99/snackbox/repositories/partner"
+	"github.com/google/uuid"
+	"github.com/h2non/filetype"
 	"github.com/labstack/echo/v4"
 )
 
@@ -43,7 +49,6 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 				Longtitude:    partnerReq.Longtitude,
 				Address:       partnerReq.Address,
 				City:          partnerReq.City,
-				LegalDocument: partnerReq.LegalDocument,
 			}
 
 			res, _ = p.Repo.ApplyPartner(partnerData)
@@ -55,7 +60,7 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 				Longtitude:    res.Longtitude,
 				Address:       res.Address,
 				City:          res.City,
-				LegalDocument: res.LegalDocument,
+				LegalDocument: fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, res.LegalDocument),
 				Status:        res.Status,
 			}
 
@@ -70,7 +75,6 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 			user.Longtitude = partnerReq.Longtitude
 			user.Address = partnerReq.Address
 			user.City = partnerReq.City
-			user.LegalDocument = partnerReq.LegalDocument
 			user.Status = "pending"
 
 			res, _ = p.Repo.ApplyPartner(user)
@@ -82,7 +86,7 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 				Longtitude:    res.Longtitude,
 				Address:       res.Address,
 				City:          res.City,
-				LegalDocument: res.LegalDocument,
+				LegalDocument: fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, res.LegalDocument),
 				Status:        res.Status,
 			}
 			return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
@@ -95,7 +99,7 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 			Longtitude:    user.Longtitude,
 			Address:       user.Address,
 			City:          user.City,
-			LegalDocument: user.LegalDocument,
+			LegalDocument: fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, res.LegalDocument),
 			Status:        user.Status,
 		}
 
@@ -122,7 +126,7 @@ func (p PartnerController) GetAllPartner() echo.HandlerFunc {
 				Longtitude:    data.Longtitude,
 				Address:       data.Address,
 				City:          data.City,
-				LegalDocument: data.LegalDocument,
+				LegalDocument: fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, data.LegalDocument),
 				Status:        data.Status,
 			})
 		}
@@ -140,6 +144,10 @@ func (p PartnerController) AcceptPartner() echo.HandlerFunc {
 		}
 
 		res, _ := p.Repo.FindPartnerId(partnerId)
+
+		if res.Status == "reject" {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
 
 		err = p.Repo.AcceptPartner(res)
 		if err != nil {
@@ -160,8 +168,12 @@ func (p PartnerController) RejectPartner() echo.HandlerFunc {
 
 		res, _ := p.Repo.FindPartnerId(partnerId)
 
-		err2 := p.Repo.RejectPartner(res)
-		if err2 != nil {
+		if res.Status == "active" {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
+
+		err = p.Repo.RejectPartner(res)
+		if err != nil {
 			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 		}
 
@@ -203,4 +215,74 @@ func (p PartnerController) GetPartner() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, common.SuccessResponse(response))
 	}
 
+}
+
+func (pc PartnerController) Upload(c echo.Context) error {
+	var requestUpload UploadDocumentRequest
+
+	if err := c.Bind(&requestUpload); err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	user, err := middlewares.ExtractTokenUser(c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+	
+	partner, err := pc.Repo.FindUserId(user.UserID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+	}
+	
+	if partner.Status == "active" || partner.Status == "pending" {
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+	}
+	
+	file, err := c.FormFile("legal_document")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	src, err := file.Open()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+	defer src.Close()
+
+	head := make([]byte, 261)
+  	src.Read(head)
+
+	kind, _ := filetype.Match(head)
+
+	const ACCEPTED_FILE_TYPE = "pdf"
+
+	if kind.Extension != ACCEPTED_FILE_TYPE {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "extension must .pdf"))
+	}
+
+	fileID := strings.ReplaceAll(uuid.New().String(), "-", "")
+	file.Filename = fmt.Sprint(fileID, ".", kind.Extension)
+
+	if partner.LegalDocument != "" {
+		if err := helper.GetObjectS3(partner.LegalDocument); err == nil {
+			_ = helper.DeleteObjectS3(partner.LegalDocument)
+		}
+	}
+
+	if err := helper.UploadObjectS3(file.Filename, src); err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	const PENDING_STATUS = "pending"
+	partnerData := models.Partner{
+		LegalDocument: file.Filename,
+		Status: PENDING_STATUS,
+	}
+
+	_, err = pc.Repo.UploadDocument(int(partner.ID), partnerData)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
 }
