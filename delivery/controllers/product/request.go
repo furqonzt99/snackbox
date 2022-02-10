@@ -20,6 +20,10 @@ type UpdateProductRequestFormat struct {
 	Description string  `json:"description" form:"description"`
 	Price       float64 `json:"price" form:"price" validate:"required"`
 }
+
+type UploadProductRequestFormat struct {
+	Image       string  `form:"title" validate:"required"`
+}
 type ProductValidator struct {
 	Validator *validator.Validate
 }

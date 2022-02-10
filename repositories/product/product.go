@@ -10,6 +10,7 @@ type ProductInterface interface {
 	FindProduct(productId, partnerId int) (models.Product, error)
 	DeleteProduct(productId, partnerId int) error
 	GetAllProduct(offset, pageSize int, search string) ([]models.Product, error)
+	UploadImage(productID int, product models.Product) (models.Product, error)
 }
 
 type ProductRepository struct {
@@ -27,6 +28,20 @@ func (p *ProductRepository) AddProduct(product models.Product) (models.Product, 
 		return product, err
 	}
 	return product, nil
+}
+
+func (p *ProductRepository) UploadImage(productID int, product models.Product) (models.Product, error) {
+	var productDB models.Product
+
+	if err := p.db.First(&productDB, productID).Error; err != nil {
+		return productDB, err
+	}
+
+	if err := p.db.Model(&productDB).Updates(product).Error; err != nil {
+		return productDB, err
+	}
+
+	return productDB, nil
 }
 
 func (p *ProductRepository) FindProduct(productId, partnerId int) (models.Product, error) {

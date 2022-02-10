@@ -40,6 +40,12 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 		var res models.Partner
 
 		user, err := p.Repo.FindUserId(userJwt.UserID)
+
+		var partnerDocument string
+		if user.LegalDocument != "" {
+			partnerDocument = fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, user.LegalDocument)
+		}
+
 		if err != nil {
 			partnerData := models.Partner{
 				UserID:        uint(userJwt.UserID),
@@ -60,7 +66,7 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 				Longtitude:    res.Longtitude,
 				Address:       res.Address,
 				City:          res.City,
-				LegalDocument: fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, res.LegalDocument),
+				LegalDocument: partnerDocument,
 				Status:        res.Status,
 			}
 
@@ -86,7 +92,7 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 				Longtitude:    res.Longtitude,
 				Address:       res.Address,
 				City:          res.City,
-				LegalDocument: fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, res.LegalDocument),
+				LegalDocument: partnerDocument,
 				Status:        res.Status,
 			}
 			return c.JSON(http.StatusOK, common.SuccessResponse(responseFormat))
@@ -99,7 +105,7 @@ func (p PartnerController) ApplyPartner() echo.HandlerFunc {
 			Longtitude:    user.Longtitude,
 			Address:       user.Address,
 			City:          user.City,
-			LegalDocument: fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, res.LegalDocument),
+			LegalDocument: partnerDocument,
 			Status:        user.Status,
 		}
 
@@ -118,6 +124,10 @@ func (p PartnerController) GetAllPartner() echo.HandlerFunc {
 		responseFormat := []GetPartnerResponse{}
 
 		for _, data := range res {
+			var partnerDocument string
+			if data.LegalDocument != "" {
+				partnerDocument = fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, data.LegalDocument)
+			}
 			responseFormat = append(responseFormat, GetPartnerResponse{
 				ID:            int(data.ID),
 				BussinessName: data.BussinessName,
@@ -126,7 +136,7 @@ func (p PartnerController) GetAllPartner() echo.HandlerFunc {
 				Longtitude:    data.Longtitude,
 				Address:       data.Address,
 				City:          data.City,
-				LegalDocument: fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, data.LegalDocument),
+				LegalDocument: partnerDocument,
 				Status:        data.Status,
 			})
 		}
