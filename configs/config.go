@@ -57,6 +57,11 @@ func initConfig() *AppConfig {
 	constants.JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
 	constants.XENDIT_CALLBACK_TOKEN = os.Getenv("XENDIT_CALLBACK_TOKEN")
 
+	constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+	constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+	constants.S3_REGION = os.Getenv("S3_REGION")
+	constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+
 	xendit.Opt.SecretKey = os.Getenv("XENDIT_SECRET_KEY")
 
 	Mode = os.Getenv("MODE")

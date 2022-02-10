@@ -14,6 +14,9 @@ type PartnerUserRequestFormat struct {
 	Longtitude     float64 `json:"longtitude" form:"longtitude" validate:"required"`
 	Address string  `json:"address" form:"address" validate:"required"`
 	City string  `json:"city" form:"city" validate:"required"`
+}
+
+type UploadDocumentRequest struct {
 	LegalDocument string  `json:"legal_document" form:"legal_document" validate:"required"`
 }
 
