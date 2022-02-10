@@ -4,14 +4,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/furqonzt99/snackbox/constants"
 	"github.com/furqonzt99/snackbox/delivery/common"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -155,7 +159,7 @@ func TestLoginUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/login")
 
-		userController := NewUsersControllers(mockFalseUserRepository{})
+		userController := NewUsersControllers(mockUserRepository{})
 		userController.LoginController()(context)
 
 		response := common.ResponseSuccess{}
@@ -164,12 +168,12 @@ func TestLoginUser(t *testing.T) {
 		assert.Equal(t, "Bad Request", response.Message)
 	})
 
-	t.Run("Error Test Login Wrong Password", func(t *testing.T) {
+	t.Run("Error Test Login not found", func(t *testing.T) {
 		e := echo.New()
 		e.Validator = &UserValidator{Validator: validator.New()}
 
 		requestBody, _ := json.Marshal(map[string]string{
-			"email":    "test@gmail.com",
+			"email":    "test22@gmail.com",
 			"password": "test1234",
 		})
 
@@ -182,11 +186,61 @@ func TestLoginUser(t *testing.T) {
 
 		userController := NewUsersControllers(mockFalseUserRepository{})
 		userController.LoginController()(context)
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+
+		assert.Equal(t, "User not found", response.Message)
+	})
+
+	t.Run("Error Test Login Wrong Password", func(t *testing.T) {
+		e := echo.New()
+		e.Validator = &UserValidator{Validator: validator.New()}
+
+		requestBody, _ := json.Marshal(map[string]string{
+			"email":    "test@gmail.com",
+			"password": "1test1234",
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		context := e.NewContext(req, res)
+		context.SetPath("/login")
+
+		userController := NewUsersControllers(mockUserRepository{})
+		userController.LoginController()(context)
 
 		response := common.ResponseSuccess{}
 		json.Unmarshal([]byte(res.Body.Bytes()), &response)
 
 		assert.Equal(t, "Wrong Password", response.Message)
+	})
+
+}
+
+func TestGetUser(t *testing.T) {
+	t.Run("Test Get User", func(t *testing.T) {
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", jwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/profile")
+
+		userController := NewUsersControllers(mockUserRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.GetUserController())(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+		assert.Equal(t, "Successful Operation", response.Message)
+		assert.Equal(t, response.Data.(map[string]interface{})["name"], "tester")
 	})
 }
 
@@ -240,11 +294,8 @@ func (m mockFalseUserRepository) Register(newUser models.User) (models.User, err
 }
 
 func (m mockFalseUserRepository) Login(email string) (models.User, error) {
-	hash, _ := bcrypt.GenerateFromPassword([]byte("test4321"), 14)
-	return models.User{
-		Email:    "test@gmail.com",
-		Password: string(hash),
-	}, nil
+	// hash, _ := bcrypt.GenerateFromPassword([]byte("test4321"), 14)
+	return models.User{}, errors.New("email not found")
 }
 
 func (m mockFalseUserRepository) Get(userid int) (models.User, error) {
