@@ -15,7 +15,12 @@ import (
 	"github.com/furqonzt99/snackbox/repositories/partner"
 	"github.com/google/uuid"
 	"github.com/h2non/filetype"
+	"github.com/johnfercher/maroto/pkg/color"
+	"github.com/johnfercher/maroto/pkg/consts"
+	"github.com/johnfercher/maroto/pkg/pdf"
+	"github.com/johnfercher/maroto/pkg/props"
 	"github.com/labstack/echo/v4"
+	"github.com/leekchan/accounting"
 )
 
 type PartnerController struct {
@@ -301,13 +306,82 @@ func (p PartnerController) Report() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		userJwt, _ := middlewares.ExtractTokenUser(c)
-		res, err := p.Repo.Report(userJwt.PartnerID)
+		transactions, err := p.Repo.Report(userJwt.PartnerID)
 		if err != nil {
 			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 		}
+		////////////////////////////////////////
 
+		contents := [][]string{}
+		ac := accounting.Accounting{Symbol: "Rp", Precision: 0}
+		for i := 0; i < len(transactions); i++ {
+			temp := []string{}
+
+			date := fmt.Sprint(transactions[i].CreatedAt)
+			invoice := transactions[i].InvoiceID
+			totalPrice := ac.FormatMoney(transactions[i].TotalPrice)
+			quantity := strconv.Itoa(transactions[i].Quantity)
+			paymentChannel := transactions[i].PaymentChannel
+			status := transactions[i].Status
+			var items string
+			for _, item := range transactions[i].Products {
+				items += item.Title + ", "
+			}
+			product := fmt.Sprint(items)
+			temp = append(temp, date[:16])
+			temp = append(temp, invoice)
+			temp = append(temp, totalPrice)
+			temp = append(temp, product[:len(product)-2])
+			temp = append(temp, quantity)
+			temp = append(temp, paymentChannel)
+			temp = append(temp, status)
+
+			contents = append(contents, temp)
+		}
+		m := pdf.NewMaroto(consts.Landscape, consts.A4)
+		m.SetPageMargins(10, 10, 10)
+
+		m.RegisterHeader(func() {
+			m.Row(20, func() {
+				m.Col(12, func() {
+					m.Text("Tabel List Transaction", props.Text{
+						Top:    2,
+						Size:   14,
+						Align:  consts.Center,
+						Family: consts.Arial,
+					})
+				})
+			})
+		})
+
+		m.SetBackgroundColor(color.NewWhite())
+
+		tableHeadings := []string{"Transaction Date", "Invoice ID", "Total Transaction", "Product", "Quantity", "Payment", "Status"}
+
+		m.TableList(tableHeadings, contents, props.TableList{
+			HeaderProp: props.TableListContent{
+				Size:      12,
+				Style:     consts.Bold,
+				GridSizes: []uint{3, 3, 2, 1, 1, 1, 1},
+			},
+
+			ContentProp: props.TableListContent{
+				Size:      10,
+				GridSizes: []uint{3, 3, 2, 1, 1, 1, 1},
+			},
+			Align:                consts.Center,
+			AlternatedBackground: &color.Color{Red: 230, Blue: 230, Green: 230},
+			HeaderContentSpace:   2,
+			Line:                 true,
+		})
+		err = m.OutputFileAndClose("./report/list-transactions.pdf")
+
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err.Error())
+		}
+		/////////////////////////////////////
 		responses := []ReportResponse{}
-		for _, item := range res {
+		for _, item := range transactions {
 			responsesItem := []ProductTitleResponse{}
 			for _, data := range item.Products {
 				responsesItem = append(responsesItem, ProductTitleResponse{

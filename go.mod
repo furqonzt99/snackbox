@@ -5,12 +5,19 @@ go 1.17
 require gorm.io/driver/mysql v1.2.3
 
 require (
+	github.com/boombuler/barcode v1.0.0 // indirect
+	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/jung-kurt/gofpdf v1.4.2 // indirect
+	github.com/leekchan/accounting v1.0.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/ruudk/golang-pdf417 v0.0.0-20181029194003-1af4ab5afa58 // indirect
+	github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
@@ -36,6 +43,7 @@ require (
 	github.com/h2non/filetype v1.1.3
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.3 // indirect
+	github.com/johnfercher/maroto v0.34.0
 	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo/v4 v4.6.3
 	github.com/labstack/gommon v0.3.1
