@@ -50,7 +50,7 @@ func (p ProductController) AddProduct() echo.HandlerFunc {
 
 		response := ProductResponse{
 			Title:       res.Title,
-			Image: 		 res.Image,
+			Image:       res.Image,
 			Type:        res.Type,
 			Description: res.Description,
 			Price:       res.Price,
@@ -134,14 +134,14 @@ func (p ProductController) GetAllProduct() echo.HandlerFunc {
 		productData := []GetProductWithPartnerResponse{}
 		for _, item := range allProduct {
 			var productImage string
-			if item.Image != "" { 
+			if item.Image != "" {
 				productImage = fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, item.Image)
 			}
 			productData = append(productData, GetProductWithPartnerResponse{
 				Id:          item.ID,
 				PartnerID:   item.PartnerID,
 				Title:       item.Title,
-				Image: 		 productImage,
+				Image:       productImage,
 				Type:        item.Type,
 				Description: item.Description,
 				Price:       item.Price,
@@ -169,12 +169,12 @@ func (pc ProductController) Upload(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
-	
+
 	product, err := pc.Repo.FindProduct(productID, user.PartnerID)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 	}
-	
+
 	file, err := c.FormFile("image")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
@@ -187,7 +187,7 @@ func (pc ProductController) Upload(c echo.Context) error {
 	defer src.Close()
 
 	head := make([]byte, 261)
-  	src.Read(head)
+	src.Read(head)
 
 	kind, _ := filetype.Match(head)
 
