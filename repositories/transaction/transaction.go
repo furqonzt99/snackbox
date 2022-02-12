@@ -50,6 +50,11 @@ func (tr *TransactionRepository) Order(transaction models.Transaction, email str
 	if err != nil {
 		return transaction, err
 	}
+
+	var user models.User
+	if err := tr.db.First(&user, "email = ?", email).Error; err != nil {
+		return transaction, err
+	}
 	
 	err = tr.db.Transaction(func(tx *gorm.DB) error {
 
@@ -57,8 +62,21 @@ func (tr *TransactionRepository) Order(transaction models.Transaction, email str
 			return err
 		}
 
-		transactionPayment, err := helper.CreateInvoice(transaction, email)
+		var transactionPayment models.Transaction
+
+		
+		transactionPayment, err = helper.CreateInvoice(transaction, email, user.Balance)
 		if err != nil {
+			return err
+		}
+
+		balanceRemain := user.Balance - transactionPayment.TotalPrice;
+		if balanceRemain <= 0 {
+			balanceRemain = 0
+		}
+
+		// update user balance
+		if err := tx.Model(&user).Update("balance", balanceRemain).Error; err != nil {
 			return err
 		}
 
