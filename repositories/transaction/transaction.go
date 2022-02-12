@@ -18,7 +18,7 @@ type TransactionInterface interface {
 	GetOneForPartner(trxID, partnerID int) (models.Transaction, error)
 
 	GetPartnerFromProduct(productID int) (models.Partner, error)
-	Callback(invId string, transaction models.Transaction) (models.Transaction, error)
+	Callback(invId string, transaction models.Transaction, refund float64) (models.Transaction, error)
 }
 
 type TransactionRepository struct {
@@ -245,15 +245,35 @@ func (tr *TransactionRepository) GetPartnerFromProduct(productID int) (models.Pa
 	return partner, nil
 }
 
-func (tr *TransactionRepository) Callback(invId string, transaction models.Transaction) (models.Transaction, error) {
+func (tr *TransactionRepository) Callback(invId string, transaction models.Transaction, refund float64) (models.Transaction, error) {
 
 	var trx models.Transaction
+	var user models.User
 
 	if err := tr.db.First(&trx, "invoice_id = ?", invId).Error; err != nil {
 		return transaction, err
 	}
 
-	if err := tr.db.Model(&trx).Updates(transaction).Error; err != nil {
+	if err := tr.db.First(&user, trx.UserID).Error; err != nil {
+		return transaction, err
+	}
+
+	balance := user.Balance + refund;
+
+	err := tr.db.Transaction(func(tx *gorm.DB) error {
+
+		if err := tx.Model(&user).Update("balance", balance).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&trx).Updates(transaction).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		return transaction, err
 	}
 
