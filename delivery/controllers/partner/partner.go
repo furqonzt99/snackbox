@@ -232,74 +232,76 @@ func (p PartnerController) GetPartner() echo.HandlerFunc {
 
 }
 
-func (pc PartnerController) Upload(c echo.Context) error {
-	var requestUpload UploadDocumentRequest
+func (pc PartnerController) Upload() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var requestUpload UploadDocumentRequest
 
-	if err := c.Bind(&requestUpload); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
-
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
-
-	partner, err := pc.Repo.FindUserId(user.UserID)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
-	}
-
-	if partner.Status == "active" || partner.Status == "pending" {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
-
-	file, err := c.FormFile("legal_document")
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
-
-	src, err := file.Open()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
-	defer src.Close()
-
-	head := make([]byte, 261)
-	src.Read(head)
-
-	kind, _ := filetype.Match(head)
-
-	const ACCEPTED_FILE_TYPE = "pdf"
-
-	if kind.Extension != ACCEPTED_FILE_TYPE {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "extension must .pdf"))
-	}
-
-	fileID := strings.ReplaceAll(uuid.New().String(), "-", "")
-	file.Filename = fmt.Sprint(fileID, ".", kind.Extension)
-
-	if partner.LegalDocument != "" {
-		if err := helper.GetObjectS3(partner.LegalDocument); err == nil {
-			_ = helper.DeleteObjectS3(partner.LegalDocument)
+		if err := c.Bind(&requestUpload); err != nil {
+			return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
 		}
-	}
 
-	if err := helper.UploadObjectS3(file.Filename, src); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+		user, err := middlewares.ExtractTokenUser(c)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		}
 
-	const PENDING_STATUS = "pending"
-	partnerData := models.Partner{
-		LegalDocument: file.Filename,
-		Status:        PENDING_STATUS,
-	}
+		partner, err := pc.Repo.FindUserId(user.UserID)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+		}
 
-	_, err = pc.Repo.UploadDocument(int(partner.ID), partnerData)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+		if partner.Status == "active" || partner.Status == "pending" {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
 
-	return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
+		file, err := c.FormFile("legal_document")
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		}
+
+		src, err := file.Open()
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		}
+		defer src.Close()
+
+		head := make([]byte, 261)
+		src.Read(head)
+
+		kind, _ := filetype.Match(head)
+
+		const ACCEPTED_FILE_TYPE = "pdf"
+
+		if kind.Extension != ACCEPTED_FILE_TYPE {
+			return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "extension must .pdf"))
+		}
+
+		fileID := strings.ReplaceAll(uuid.New().String(), "-", "")
+		file.Filename = fmt.Sprint(fileID, ".", kind.Extension)
+
+		if partner.LegalDocument != "" {
+			if err := helper.GetObjectS3(partner.LegalDocument); err == nil {
+				_ = helper.DeleteObjectS3(partner.LegalDocument)
+			}
+		}
+
+		if err := helper.UploadObjectS3(file.Filename, src); err != nil {
+			return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		}
+
+		const PENDING_STATUS = "pending"
+		partnerData := models.Partner{
+			LegalDocument: file.Filename,
+			Status:        PENDING_STATUS,
+		}
+
+		_, err = pc.Repo.UploadDocument(int(partner.ID), partnerData)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		}
+
+		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
+	}
 }
 
 func (p PartnerController) Report() echo.HandlerFunc {
@@ -327,11 +329,12 @@ func (p PartnerController) Report() echo.HandlerFunc {
 			for _, item := range transactions[i].Products {
 				items += item.Title + ", "
 			}
-			product := fmt.Sprint(items)
+			product := fmt.Sprint(items[:len(items)-2])
+
 			temp = append(temp, date[:16])
 			temp = append(temp, invoice)
 			temp = append(temp, totalPrice)
-			temp = append(temp, product[:len(product)-2])
+			temp = append(temp, product)
 			temp = append(temp, quantity)
 			temp = append(temp, paymentChannel)
 			temp = append(temp, status)
@@ -374,11 +377,8 @@ func (p PartnerController) Report() echo.HandlerFunc {
 			HeaderContentSpace:   2,
 			Line:                 true,
 		})
-		err = m.OutputFileAndClose("./report/list-transactions.pdf")
+		m.OutputFileAndClose("./report/list-transactions.pdf")
 
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, err.Error())
-		}
 		/////////////////////////////////////
 		responses := []ReportResponse{}
 		for _, item := range transactions {
