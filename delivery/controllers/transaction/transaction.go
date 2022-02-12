@@ -47,6 +47,11 @@ func (tc *TransactionController) Order(c echo.Context) error {
 	invoiceId := strings.ToUpper(strings.ReplaceAll(uuid.New().String(), "-", ""))
 
 	dateTime, _ := time.Parse(time.RFC3339, fmt.Sprintf("%vT%vZ", transactionRequest.Date, transactionRequest.Time))
+	threeDayLater := time.Now().AddDate(0, 0, 3)
+
+	if threeDayLater.After(dateTime) {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "you must reservate 3 days before the event time!"))
+	}
 
 	transaction := models.Transaction{
 		UserID:         uint(user.UserID),
