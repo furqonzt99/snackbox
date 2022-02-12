@@ -1,12 +1,15 @@
 package helper
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/xendit/xendit-go"
 	"github.com/xendit/xendit-go/invoice"
 )
 
-func CreateInvoice(transaction models.Transaction, email string) (models.Transaction, error) {
+func CreateInvoice(transaction models.Transaction, email string, balance float64) (models.Transaction, error) {
 
 	items := []xendit.InvoiceItem{}
 
@@ -21,22 +24,36 @@ func CreateInvoice(transaction models.Transaction, email string) (models.Transac
 
 	transaction.TotalPrice = SumTotalPrice(items)
 
-	data := invoice.CreateParams{
-		ExternalID:      transaction.InvoiceID,
-		Amount:          transaction.TotalPrice,
-		Description:     "SnackBox Invoice " + transaction.InvoiceID + " for " + email,
-		PayerEmail:      email,
-		Items:           items,
-	}
+	totalPay := transaction.TotalPrice - balance
 
-	resp, err := invoice.Create(&data)
-	if err != nil {
-		return transaction, err
-	}
+	var transactionSuccess models.Transaction
 
-	transactionSuccess := models.Transaction{
-		PaymentUrl:     resp.InvoiceURL,
-		TotalPrice: resp.Amount,
+	if totalPay <= 0 {
+		transactionSuccess = models.Transaction{
+			TotalPrice:     transaction.TotalPrice,
+			PaymentChannel: "SboxPay",
+			PaymentMethod:  "Sboxpay",
+			PaidAt:         time.Now(),
+			Status:         "PAID",
+		}
+	} else {
+		data := invoice.CreateParams{
+			ExternalID:      transaction.InvoiceID,
+			Amount:          totalPay,
+			Description:     "SnackBox Invoice " + transaction.InvoiceID + " for " + email + " split with SboxPay Rp" + fmt.Sprint(balance),
+			PayerEmail:      email,
+			Items:           items,
+		}
+
+		resp, err := invoice.Create(&data)
+		if err != nil {
+			return transaction, err
+		}
+
+		transactionSuccess = models.Transaction{
+			PaymentUrl:     resp.InvoiceURL,
+			TotalPrice: transaction.TotalPrice,
+		}
 	}
 
 	return transactionSuccess, nil
