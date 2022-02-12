@@ -110,7 +110,7 @@ func TestRegisterUser(t *testing.T) {
 	})
 }
 
-var jwtToken string //TOKEN FROM LOGIN
+var JwtToken string //TOKEN FROM LOGIN
 
 func TestLoginUser(t *testing.T) {
 	//======================
@@ -138,9 +138,9 @@ func TestLoginUser(t *testing.T) {
 		response := common.ResponseSuccess{}
 		json.Unmarshal([]byte(res.Body.Bytes()), &response)
 
-		jwtToken = response.Data.(string)
+		JwtToken = response.Data.(string)
 		assert.Equal(t, "Successful Operation", response.Message)
-		assert.NotNil(t, jwtToken)
+		assert.NotNil(t, JwtToken)
 	})
 
 	t.Run("Error Test Login Password Length Below 4", func(t *testing.T) {
@@ -226,7 +226,7 @@ func TestLoginUser(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		res := httptest.NewRecorder()
 
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", jwtToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 		// fmt.Println(jwtToken)
 		context := e.NewContext(req, res)
 		context.SetPath("/profile")
@@ -262,7 +262,7 @@ func TestLoginUser(t *testing.T) {
 		res := httptest.NewRecorder()
 
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", jwtToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 
 		context := e.NewContext(req, res)
 		context.SetPath("/users")
@@ -295,7 +295,7 @@ func TestLoginUser(t *testing.T) {
 		res := httptest.NewRecorder()
 
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", jwtToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 
 		context := e.NewContext(req, res)
 		context.SetPath("/users")
@@ -328,7 +328,7 @@ func TestLoginUser(t *testing.T) {
 		res := httptest.NewRecorder()
 
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", jwtToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 
 		context := e.NewContext(req, res)
 		context.SetPath("/users")
@@ -355,7 +355,7 @@ func TestLoginUser(t *testing.T) {
 		res := httptest.NewRecorder()
 
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", jwtToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 
 		context := e.NewContext(req, res)
 		context.SetPath("/users")
