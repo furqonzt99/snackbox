@@ -14,6 +14,7 @@ type PartnerInterface interface {
 	AcceptPartner(partner models.Partner) error
 	RejectPartner(partner models.Partner) error
 	GetAllPartnerProduct() ([]models.Partner, error)
+	UploadDocument(partnerID int, partner models.Partner) (models.Partner, error)
 }
 
 type PartnerRepository struct {
@@ -30,6 +31,20 @@ func (p *PartnerRepository) ApplyPartner(partner models.Partner) (models.Partner
 		return partner, err
 	}
 	return partner, nil
+}
+
+func (p *PartnerRepository) UploadDocument(partnerID int, partner models.Partner) (models.Partner, error) {
+	var partnerDB models.Partner
+
+	if err := p.db.First(&partnerDB, partnerID).Error; err != nil {
+		return partnerDB, err
+	}
+
+	if err := p.db.Model(&partnerDB).Updates(partner).Error; err != nil {
+		return partnerDB, err
+	}
+
+	return partnerDB, nil
 }
 
 func (p *PartnerRepository) GetAllPartner() ([]models.Partner, error) {
@@ -60,6 +75,7 @@ func (p *PartnerRepository) FindUserId(userId int) (models.Partner, error) {
 	if err != nil {
 		return partner, err
 	}
+	
 	return partner, nil
 }
 
@@ -67,13 +83,20 @@ func (p *PartnerRepository) AcceptPartner(partner models.Partner) error {
 
 	var user models.User
 	partner.Status = "active"
-	err := p.db.Save(&partner).Error
+	var err error
+	p.db.Transaction(func(tx *gorm.DB) error {
+		err = tx.Save(&partner).Error
+		if err != nil {
+			return err
+		}
+		tx.First(&user, "id = ?", partner.UserID)
+		user.Role = "partner"
+		tx.Save(&user)
+		return nil
+	})
 	if err != nil {
 		return err
 	}
-	p.db.First(&user, "id = ?", partner.UserID)
-	user.Role = "partner"
-	p.db.Save(&user)
 	return nil
 }
 

@@ -62,3 +62,13 @@ type GetPartnerProductResponse struct {
 	City          string  `json:"city"`
 	Products      []product.ProductResponse
 }
+
+type GetPartnerProfileResponse struct {
+	ID            int     `json:"id"`
+	BussinessName string  `json:"bussiness_name"`
+	Description   string  `json:"description"`
+	Latitude      float64 `json:"latitude"`
+	Longtitude    float64 `json:"longtitude"`
+	LegalDocument string  `json:"legal_document"`
+	Status        string  `json:"status"`
+}

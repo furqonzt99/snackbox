@@ -1,6 +1,9 @@
 package user
 
-import "github.com/furqonzt99/snackbox/models"
+import (
+	"github.com/furqonzt99/snackbox/delivery/controllers/partner"
+	"github.com/furqonzt99/snackbox/models"
+)
 
 type RegisterUserResponseFormat struct {
 	Message string        `json:"message"`
@@ -28,10 +31,24 @@ type DeleteUserResponseFormat struct {
 
 type UserResponse struct {
 	ID      uint    `json:"id"`
-	Name    string  `json:"name"`
 	Email   string  `json:"email"`
+	Name    string  `json:"name"`
 	Address string  `json:"address"`
 	City    string  `json:"city"`
 	Balance float64 `json:"balance"`
 	Role    string  `json:"role"`
+}
+
+type UserProfileResponse struct {
+	ID      uint    `json:"id"`
+	Email   string  `json:"email"`
+	Name    string  `json:"name"`
+	Balance float64 `json:"balance"`
+}
+type UserProfileResponseWithPartner struct {
+	ID      uint    `json:"id"`
+	Email   string  `json:"email"`
+	Name    string  `json:"name"`
+	Balance float64 `json:"balance"`
+	Partner partner.GetPartnerProfileResponse
 }
