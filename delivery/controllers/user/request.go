@@ -28,6 +28,9 @@ type UserLoginRequestFormat struct {
 	Password string `json:"password" form:"password" validate:"required,min=4"`
 }
 
+type UserPhotoRequest struct {
+	Photo	string	`json:"photo" validate:"required"`
+}
 type UserValidator struct {
 	Validator *validator.Validate
 }
