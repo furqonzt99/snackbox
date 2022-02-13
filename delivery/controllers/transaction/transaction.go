@@ -47,6 +47,11 @@ func (tc *TransactionController) Order(c echo.Context) error {
 	invoiceId := strings.ToUpper(strings.ReplaceAll(uuid.New().String(), "-", ""))
 
 	dateTime, _ := time.Parse(time.RFC3339, fmt.Sprintf("%vT%vZ", transactionRequest.Date, transactionRequest.Time))
+	threeDayLater := time.Now().AddDate(0, 0, 3)
+
+	if threeDayLater.After(dateTime) {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "you must reservate 3 days before the event time!"))
+	}
 
 	transaction := models.Transaction{
 		UserID:         uint(user.UserID),
@@ -110,8 +115,18 @@ func (tc TransactionController) Callback(c echo.Context) error {
 	data.PaymentMethod = callbackRequest.PaymentMethod
 	data.PaymentChannel = callbackRequest.PaymentChannel
 	data.Status = callbackRequest.Status
+	
+	var refund float64
 
-	_, err := tc.Repo.Callback(callbackRequest.ExternalID, data)
+	if callbackRequest.Status == "PAID" {
+		refund = 0
+	} else {
+		for _, item := range callbackRequest.Items {
+		refund += item.Price
+	}
+	}
+
+	_, err := tc.Repo.Callback(callbackRequest.ExternalID, data, refund)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 	}

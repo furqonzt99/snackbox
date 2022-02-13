@@ -14,4 +14,5 @@ func RegisterUserPath(e *echo.Echo, userCtrl *user.UserController) {
 	e.GET("/profile", userCtrl.GetUserController(), middleware.JWT([]byte(constants.JWT_SECRET_KEY)))
 	e.PUT("/users", userCtrl.UpdateUserController(), middleware.JWT([]byte(constants.JWT_SECRET_KEY)))
 	e.DELETE("/users", userCtrl.DeleteUserController(), middleware.JWT([]byte(constants.JWT_SECRET_KEY)))
+	e.PUT("/users/photo", userCtrl.Upload, middleware.JWT([]byte(constants.JWT_SECRET_KEY)))
 }
