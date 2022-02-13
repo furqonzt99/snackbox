@@ -2,6 +2,7 @@ package main
 
 import (
 	config "github.com/furqonzt99/snackbox/configs"
+	"github.com/furqonzt99/snackbox/delivery/controllers/bank"
 	"github.com/furqonzt99/snackbox/delivery/controllers/cashout"
 	"github.com/furqonzt99/snackbox/delivery/controllers/partner"
 	"github.com/furqonzt99/snackbox/delivery/controllers/product"
@@ -10,6 +11,7 @@ import (
 	"github.com/furqonzt99/snackbox/delivery/controllers/user"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
 	"github.com/furqonzt99/snackbox/delivery/routes"
+	br "github.com/furqonzt99/snackbox/repositories/bank"
 	cr "github.com/furqonzt99/snackbox/repositories/cashout"
 	pt "github.com/furqonzt99/snackbox/repositories/partner"
 	pd "github.com/furqonzt99/snackbox/repositories/product"
@@ -36,6 +38,7 @@ func main() {
 	transactionRepo := tr.NewTransactionRepository(db)
 	ratingRepo := rr.NewRatingRepository(db)
 	cashoutRepo := cr.NewCashoutRepository(db)
+	bankRepo := br.NewBankRepository(db)
 
 	//controller
 	userCtrl := user.NewUsersControllers(userRepo)
@@ -44,6 +47,7 @@ func main() {
 	transactionController := transaction.NewTransactionController(transactionRepo)
 	ratingController := rating.NewRatingController(ratingRepo)
 	cashoutController := cashout.NewCashoutController(cashoutRepo)
+	bankController := bank.NewBankController(bankRepo)
 
 	//echo package
 	e := echo.New()
@@ -65,6 +69,7 @@ func main() {
 	routes.RegisterTransactionPath(e, transactionController)
 	routes.RegisterRatingPath(e, ratingController)
 	routes.RegisterCashoutPath(e, cashoutController)
+	routes.RegisterBankPath(e, bankController)
 
 	e.Logger.Fatal(e.Start(":" + config.Port))
 }
