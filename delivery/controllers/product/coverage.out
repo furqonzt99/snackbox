@@ -1,7 +1,4 @@
 mode: set
-github.com/furqonzt99/snackbox/delivery/controllers/product/request.go:31.59,32.47 1 1
-github.com/furqonzt99/snackbox/delivery/controllers/product/request.go:36.2,36.12 1 1
-github.com/furqonzt99/snackbox/delivery/controllers/product/request.go:32.47,35.3 1 1
 github.com/furqonzt99/snackbox/delivery/controllers/product/product.go:25.80,27.2 1 1
 github.com/furqonzt99/snackbox/delivery/controllers/product/product.go:29.58,30.36 1 1
 github.com/furqonzt99/snackbox/delivery/controllers/product/product.go:30.36,36.48 4 1
@@ -57,3 +54,6 @@ github.com/furqonzt99/snackbox/delivery/controllers/product/product.go:201.25,20
 github.com/furqonzt99/snackbox/delivery/controllers/product/product.go:202.59,204.4 1 0
 github.com/furqonzt99/snackbox/delivery/controllers/product/product.go:207.66,209.3 1 0
 github.com/furqonzt99/snackbox/delivery/controllers/product/product.go:216.16,218.3 1 0
+github.com/furqonzt99/snackbox/delivery/controllers/product/request.go:31.59,32.47 1 1
+github.com/furqonzt99/snackbox/delivery/controllers/product/request.go:36.2,36.12 1 1
+github.com/furqonzt99/snackbox/delivery/controllers/product/request.go:32.47,35.3 1 1
