@@ -114,7 +114,7 @@ func (p *PartnerRepository) RejectPartner(partner models.Partner) error {
 func (p *PartnerRepository) GetPartner(partnerId int) (models.Partner, error) {
 
 	var partner models.Partner
-	err := p.db.Preload("Products").First(&partner, partnerId).Error
+	err := p.db.Preload("Ratings").Preload("Products").Preload("User").First(&partner, partnerId).Error
 	if err != nil {
 		return partner, err
 	}

@@ -11,4 +11,5 @@ import (
 func RegisterRatingPath(e *echo.Echo, RatingController *rating.RatingController) {
 
 	e.POST("/ratings", RatingController.Create, middleware.JWT([]byte(constants.JWT_SECRET_KEY)), middlewares.CheckUserRole)
+	e.GET("/ratings/:trxID", RatingController.GetByTrxID, middleware.JWT([]byte(constants.JWT_SECRET_KEY)))
 }

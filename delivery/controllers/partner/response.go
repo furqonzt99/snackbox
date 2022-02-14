@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/furqonzt99/snackbox/delivery/controllers/product"
+	"github.com/furqonzt99/snackbox/delivery/controllers/rating"
 	"github.com/furqonzt99/snackbox/models"
 )
 
@@ -62,7 +63,20 @@ type GetPartnerProductResponse struct {
 	Longtitude    float64 `json:"longtitude"`
 	Address       string  `json:"address"`
 	City          string  `json:"city"`
+	Rating		  float64 `json:"rating"`
 	Products      []product.ProductResponse
+}
+
+type GetPartnerRatingResponse struct {
+	ID            int     `json:"id"`
+	BussinessName string  `json:"bussiness_name"`
+	Description   string  `json:"description"`
+	Latitude      float64 `json:"latitude"`
+	Longtitude    float64 `json:"longtitude"`
+	Address       string  `json:"address"`
+	City          string  `json:"city"`
+	Rating		  float64 `json:"rating"`
+	Ratings      []rating.RatingResponse
 }
 
 type GetPartnerProfileResponse struct {
@@ -73,6 +87,7 @@ type GetPartnerProfileResponse struct {
 	Longtitude    float64 `json:"longtitude"`
 	LegalDocument string  `json:"legal_document"`
 	Status        string  `json:"status"`
+	
 }
 
 type ReportResponse struct {
