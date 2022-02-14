@@ -5,6 +5,7 @@ import "github.com/furqonzt99/snackbox/delivery/controllers/product"
 type TransactionResponse struct {
 	ID int `json:"id"`
 	UserID int `json:"user_id"`
+	UserName string `json:"username"`
 	PartnerID int `json:"partner_id"`
 	InvoiceID string `json:"invoice_id"`
 	Buffet bool `json:"buffet"`

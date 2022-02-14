@@ -64,7 +64,6 @@ func (tr *TransactionRepository) Order(transaction models.Transaction, email str
 
 		var transactionPayment models.Transaction
 
-		
 		transactionPayment, err = helper.CreateInvoice(transaction, email, user.Balance)
 		if err != nil {
 			return err
@@ -88,6 +87,10 @@ func (tr *TransactionRepository) Order(transaction models.Transaction, email str
 	})
 
 	if err != nil {
+		return transaction, err
+	}
+
+	if err := tr.db.Preload("User").Preload("Products").First(&transaction, transaction.ID).Error; err != nil {
 		return transaction, err
 	}
 
@@ -190,7 +193,7 @@ func (tr *TransactionRepository) GetAllForPartner(partnerID int) ([]models.Trans
 
 	const PAID_STATUS = "PAID"
 
-	if err := tr.db.Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).Find(&trx).Error; err != nil {
+	if err := tr.db.Preload("User").Preload("Products").Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).Find(&trx).Error; err != nil {
 		return nil, err
 	}
 
@@ -200,7 +203,7 @@ func (tr *TransactionRepository) GetAllForPartner(partnerID int) ([]models.Trans
 func (tr *TransactionRepository) GetAllForUser(userID int) ([]models.Transaction, error) {
 	trx := []models.Transaction{}
 
-	if err := tr.db.Where("user_id = ?", userID).Find(&trx).Error; err != nil {
+	if err := tr.db.Preload("User").Preload("Products").Where("user_id = ?", userID).Find(&trx).Error; err != nil {
 		return nil, err
 	}
 
@@ -210,7 +213,7 @@ func (tr *TransactionRepository) GetAllForUser(userID int) ([]models.Transaction
 func (tr *TransactionRepository) GetOneForUser(trxID, userID int) (models.Transaction, error) {
 	trx := models.Transaction{}
 
-	if err := tr.db.Where("user_id = ?", userID).First(&trx, trxID).Error; err != nil {
+	if err := tr.db.Preload("User").Preload("Products").Where("user_id = ?", userID).First(&trx, trxID).Error; err != nil {
 		return trx, err
 	}
 
@@ -222,7 +225,7 @@ func (tr *TransactionRepository) GetOneForPartner(trxID, partnerID int) (models.
 
 	const PAID_STATUS = "PAID"
 
-	if err := tr.db.Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).First(&trx, trxID).Error; err != nil {
+	if err := tr.db.Preload("User").Preload("Products").Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).First(&trx, trxID).Error; err != nil {
 		return trx, err
 	}
 
