@@ -73,7 +73,7 @@ func (uscon UserController) LoginController() echo.HandlerFunc {
 
 		user, err := uscon.Repo.Login(loginUser.Email)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusNotFound, common.ErrorResponse(404, "User not found"))
+			return c.JSON(http.StatusNotFound, common.ErrorResponse(404, "User not found"))
 		}
 
 		hash, err := helper.Checkpwd(user.Password, loginUser.Password)

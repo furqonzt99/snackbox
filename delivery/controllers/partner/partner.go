@@ -16,7 +16,12 @@ import (
 	"github.com/furqonzt99/snackbox/repositories/partner"
 	"github.com/google/uuid"
 	"github.com/h2non/filetype"
+	"github.com/johnfercher/maroto/pkg/color"
+	"github.com/johnfercher/maroto/pkg/consts"
+	"github.com/johnfercher/maroto/pkg/pdf"
+	"github.com/johnfercher/maroto/pkg/props"
 	"github.com/labstack/echo/v4"
+	"github.com/leekchan/accounting"
 )
 
 type PartnerController struct {
@@ -192,6 +197,36 @@ func (p PartnerController) RejectPartner() echo.HandlerFunc {
 	}
 }
 
+func (p PartnerController) GetPartnerData() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userJwt, _ := middlewares.ExtractTokenUser(c)
+
+		partner, err := p.Repo.GetPartner(userJwt.PartnerID)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
+		// layoutFormat := "2006-01-02"
+		// date, _ := time.Parse(layoutFormat, partner.CreatedAt.String()[:11])
+		// fmt.Println(partner.CreatedAt.String()[:11])
+		// date := partner.CreatedAt.Format(time.RFC822Z)
+
+		partnerData := PartnerData{
+			ID:            int(partner.ID),
+			BussinessName: partner.BussinessName,
+			Description:   partner.Description,
+			Latitude:      partner.Latitude,
+			Longtitude:    partner.Longtitude,
+			Address:       partner.Address,
+			City:          partner.City,
+			LegalDocument: partner.LegalDocument,
+			Status:        partner.Status,
+			ApplyDate:     partner.CreatedAt.String()[:10],
+		}
+
+		return c.JSON(http.StatusOK, common.SuccessResponse(partnerData))
+	}
+}
+
 func (p PartnerController) GetPartnerProduct() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
@@ -220,7 +255,7 @@ func (p PartnerController) GetPartnerProduct() echo.HandlerFunc {
 			Longtitude:    partner.Longtitude,
 			Address:       partner.Address,
 			City:          partner.City,
-			Rating: helper.CalculateRating(partner.Ratings),
+			Rating:        helper.CalculateRating(partner.Ratings),
 			Products:      productItems,
 		}
 
@@ -258,8 +293,8 @@ func (p PartnerController) GetPartnerRating() echo.HandlerFunc {
 			Longtitude:    partner.Longtitude,
 			Address:       partner.Address,
 			City:          partner.City,
-			Rating:		   helper.CalculateRating(partner.Ratings),
-			Ratings:      ratingItems,
+			Rating:        helper.CalculateRating(partner.Ratings),
+			Ratings:       ratingItems,
 		}
 
 		return c.JSON(http.StatusOK, common.SuccessResponse(response))
@@ -278,16 +313,16 @@ func (pc PartnerController) Upload(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
-	
+
 	partner, err := pc.Repo.FindUserId(user.UserID)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 	}
-	
+
 	if partner.Status == "active" || partner.Status == "pending" {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
-	
+
 	file, err := c.FormFile("legal_document")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
@@ -300,7 +335,7 @@ func (pc PartnerController) Upload(c echo.Context) error {
 	defer src.Close()
 
 	head := make([]byte, 261)
-  	src.Read(head)
+	src.Read(head)
 
 	kind, _ := filetype.Match(head)
 
@@ -326,7 +361,7 @@ func (pc PartnerController) Upload(c echo.Context) error {
 	const PENDING_STATUS = "pending"
 	partnerData := models.Partner{
 		LegalDocument: file.Filename,
-		Status: PENDING_STATUS,
+		Status:        PENDING_STATUS,
 	}
 
 	_, err = pc.Repo.UploadDocument(int(partner.ID), partnerData)
@@ -335,4 +370,105 @@ func (pc PartnerController) Upload(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
+}
+
+func (p PartnerController) Report() echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		userJwt, _ := middlewares.ExtractTokenUser(c)
+		transactions, err := p.Repo.Report(userJwt.PartnerID)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+		}
+		////////////////////////////////////////
+
+		contents := [][]string{}
+		ac := accounting.Accounting{Symbol: "Rp", Precision: 0}
+		for i := 0; i < len(transactions); i++ {
+			temp := []string{}
+
+			date := fmt.Sprint(transactions[i].CreatedAt)
+			invoice := transactions[i].InvoiceID
+			totalPrice := ac.FormatMoney(transactions[i].TotalPrice)
+			quantity := strconv.Itoa(transactions[i].Quantity)
+			paymentChannel := transactions[i].PaymentChannel
+			status := transactions[i].Status
+			var items string
+			for _, item := range transactions[i].Products {
+				items += item.Title + ", "
+			}
+			product := fmt.Sprint(items)[:len(items)-2]
+
+			temp = append(temp, date[:16])
+			temp = append(temp, invoice)
+			temp = append(temp, totalPrice)
+			temp = append(temp, product)
+			temp = append(temp, quantity)
+			temp = append(temp, paymentChannel)
+			temp = append(temp, status)
+
+			contents = append(contents, temp)
+		}
+		m := pdf.NewMaroto(consts.Landscape, consts.A4)
+		m.SetPageMargins(10, 10, 10)
+
+		m.RegisterHeader(func() {
+			m.Row(20, func() {
+				m.Col(12, func() {
+					m.Text("Tabel List Transaction", props.Text{
+						Top:    2,
+						Size:   14,
+						Align:  consts.Center,
+						Family: consts.Arial,
+					})
+				})
+			})
+		})
+
+		m.SetBackgroundColor(color.NewWhite())
+
+		tableHeadings := []string{"Transaction Date", "Invoice ID", "Total Transaction", "Product", "Quantity", "Payment", "Status"}
+
+		m.TableList(tableHeadings, contents, props.TableList{
+			HeaderProp: props.TableListContent{
+				Size:      12,
+				Style:     consts.Bold,
+				GridSizes: []uint{3, 3, 2, 1, 1, 1, 1},
+			},
+
+			ContentProp: props.TableListContent{
+				Size:      10,
+				GridSizes: []uint{3, 3, 2, 1, 1, 1, 1},
+			},
+			Align:                consts.Center,
+			AlternatedBackground: &color.Color{Red: 230, Blue: 230, Green: 230},
+			HeaderContentSpace:   2,
+			Line:                 true,
+		})
+		m.OutputFileAndClose("./report/list-transactions.pdf")
+
+		/////////////////////////////////////
+		responses := []ReportResponse{}
+		for _, item := range transactions {
+			responsesItem := []ProductTitleResponse{}
+			for _, data := range item.Products {
+				responsesItem = append(responsesItem, ProductTitleResponse{
+					Title: data.Title,
+				})
+			}
+
+			responses = append(responses, ReportResponse{
+				CreateAt:         item.CreatedAt,
+				InvoiceId:        item.InvoiceID,
+				TotalTransaction: item.TotalPrice,
+				Quantity:         item.Quantity,
+				PaymentChannel:   item.PaymentChannel,
+				Status:           item.Status,
+				Products:         responsesItem,
+			})
+
+		}
+		return c.JSON(http.StatusOK, common.SuccessResponse(responses))
+	}
+
 }
