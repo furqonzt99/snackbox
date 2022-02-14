@@ -73,15 +73,31 @@ func TestTransaction(t *testing.T) {
 type mockTransaction struct{}
 
 func (m mockTransaction) Order(transaction models.Transaction, email string, products []int) (models.Transaction, error) {
-	return models.Transaction{}, nil
+	return models.Transaction{
+		UserID:    1,
+		PartnerID: 2,
+	}, nil
 }
 
 func (m mockTransaction) Accept(trxID, partnerID int) (models.Transaction, error) {
-	return models.Transaction{}, nil
+	return models.Transaction{
+		UserID:    1,
+		PartnerID: 2,
+	}, nil
 }
 
 func (m mockTransaction) Reject(trxID, partnerID int) (models.Transaction, error) {
-	return models.Transaction{}, nil
+	return models.Transaction{
+		UserID:    1,
+		PartnerID: 2,
+	}, nil
+}
+
+func (m mockTransaction) Send(trxID, partnerID int) (models.Transaction, error) {
+	return models.Transaction{
+		UserID:    1,
+		PartnerID: 2,
+	}, nil
 }
 
 //======================
