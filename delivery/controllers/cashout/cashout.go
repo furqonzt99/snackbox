@@ -22,28 +22,28 @@ func NewCashoutController(cashout cashout.CashoutInterface) *CashoutController {
 func (cc CashoutController) Cashout(c echo.Context) error {
 	var requestCashout CashoutRequest
 
-	if err := c.Bind(&requestCashout); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+	c.Bind(&requestCashout)
 
 	if err := c.Validate(&requestCashout); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+
 	}
 
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
-	
+	user, _ := middlewares.ExtractTokenUser(c)
+
 	userData, err := cc.Repo.CheckBalance(user.UserID)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
-	}
-	
-	if requestCashout.Amount > userData.Balance {
+		// return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+
 	}
-	
+
+	if requestCashout.Amount > userData.Balance {
+		// return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+
+	}
+
 	data := models.Cashout{
 		UserID:            uint(user.UserID),
 		BankCode:          requestCashout.BankCode,
@@ -54,12 +54,16 @@ func (cc CashoutController) Cashout(c echo.Context) error {
 
 	cashout, err := helper.PaymentCashout(data)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		// return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "ERROR6"))
+
 	}
 
 	cashoutDB, err := cc.Repo.Cashout(cashout)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		// return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+
 	}
 
 	response := CashoutResponse{
@@ -122,7 +126,7 @@ func (cc CashoutController) Callback(c echo.Context) error {
 	data.Status = callbackRequest.Status
 
 	const STATUS_COMPLETED = "COMPLETED"
-	
+
 	var err error
 
 	if callbackRequest.Status == STATUS_COMPLETED {
