@@ -2,6 +2,7 @@ package rating
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/furqonzt99/snackbox/delivery/common"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
@@ -37,10 +38,14 @@ func (rc RatingController) Create(c echo.Context) error {
 	}
 
 	data := models.Rating{
-		PartnerID: uint(ratingRequest.PartnerID),
-		UserID:  uint(user.UserID),
-		Rating:  ratingRequest.Rating,
-		Comment: ratingRequest.Comment,
+		TransactionID: 0,
+		PartnerID:     uint(ratingRequest.PartnerID),
+		UserID:        uint(user.UserID),
+		Rating:        ratingRequest.Rating,
+		Comment:       ratingRequest.Comment,
+		Transaction:   models.Transaction{},
+		User:          models.User{},
+		Partner:       models.Partner{},
 	}
 
 	ratingData, err := rc.Repo.Create(data)
@@ -60,4 +65,27 @@ func (rc RatingController) Create(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, common.SuccessResponse(response)) 
+}
+
+func (rc RatingController) GetByTrxID(c echo.Context) error {
+	trxID, err := strconv.Atoi(c.Param("trxID"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+	}
+
+	rating, err := rc.Repo.GetByTrxID(trxID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
+	}
+
+	response := RatingResponse{
+		PartnerID: int(rating.PartnerID),
+		UserID:    int(rating.UserID),
+		Username:  rating.User.Name,
+		Rating:    rating.Rating,
+		Comment:   rating.Comment,
+	}
+
+	return c.JSON(http.StatusBadRequest, common.SuccessResponse(response))
+
 }

@@ -14,4 +14,5 @@ type Partner struct {
 	LegalDocument string
 	Status        string `gorm:"default:DRAFT"`
 	Products      []Product
+	Ratings		  []Rating
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/furqonzt99/snackbox/constants"
 	"github.com/furqonzt99/snackbox/delivery/common"
 	"github.com/furqonzt99/snackbox/delivery/controllers/product"
+	"github.com/furqonzt99/snackbox/delivery/controllers/rating"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
 	"github.com/furqonzt99/snackbox/helper"
 	"github.com/furqonzt99/snackbox/models"
@@ -191,7 +192,7 @@ func (p PartnerController) RejectPartner() echo.HandlerFunc {
 	}
 }
 
-func (p PartnerController) GetPartner() echo.HandlerFunc {
+func (p PartnerController) GetPartnerProduct() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		partnerId, err := strconv.Atoi(c.Param("id"))
@@ -219,7 +220,46 @@ func (p PartnerController) GetPartner() echo.HandlerFunc {
 			Longtitude:    partner.Longtitude,
 			Address:       partner.Address,
 			City:          partner.City,
+			Rating: helper.CalculateRating(partner.Ratings),
 			Products:      productItems,
+		}
+
+		return c.JSON(http.StatusOK, common.SuccessResponse(response))
+	}
+
+}
+
+func (p PartnerController) GetPartnerRating() echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		partnerId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
+
+		partner, _ := p.Repo.GetPartner(partnerId)
+
+		ratingItems := []rating.RatingResponse{}
+		for _, item := range partner.Ratings {
+			ratingItems = append(ratingItems, rating.RatingResponse{
+				PartnerID: partnerId,
+				UserID:    item.Rating,
+				Username:  item.User.Name,
+				Rating:    item.Rating,
+				Comment:   item.Comment,
+			})
+		}
+
+		response := GetPartnerRatingResponse{
+			ID:            int(partner.ID),
+			BussinessName: partner.BussinessName,
+			Description:   partner.Description,
+			Latitude:      partner.Latitude,
+			Longtitude:    partner.Longtitude,
+			Address:       partner.Address,
+			City:          partner.City,
+			Rating:		   helper.CalculateRating(partner.Ratings),
+			Ratings:      ratingItems,
 		}
 
 		return c.JSON(http.StatusOK, common.SuccessResponse(response))
