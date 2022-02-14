@@ -27,9 +27,7 @@ func NewTransactionController(repo transaction.TransactionInterface) *Transactio
 func (tc *TransactionController) Order(c echo.Context) error {
 	var transactionRequest TransactionRequest
 
-	if err := c.Bind(&transactionRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+	c.Bind(&transactionRequest)
 
 	if err := c.Validate(&transactionRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
@@ -54,14 +52,14 @@ func (tc *TransactionController) Order(c echo.Context) error {
 	}
 
 	transaction := models.Transaction{
-		UserID:         uint(user.UserID),
-		PartnerID:      uint(partner.ID),
-		Buffet:         transactionRequest.Buffet,
-		Quantity:       transactionRequest.Quantity,
-		DateTime:       dateTime,
-		Latitude:       transactionRequest.Latitude,
-		Longtitude:     transactionRequest.Longtitude,
-		InvoiceID:      invoiceId,
+		UserID:     uint(user.UserID),
+		PartnerID:  uint(partner.ID),
+		Buffet:     transactionRequest.Buffet,
+		Quantity:   transactionRequest.Quantity,
+		DateTime:   dateTime,
+		Latitude:   transactionRequest.Latitude,
+		Longtitude: transactionRequest.Longtitude,
+		InvoiceID:  invoiceId,
 	}
 
 	transactionOrder, err := tc.Repo.Order(transaction, user.Email, transactionRequest.Products)
@@ -115,15 +113,15 @@ func (tc TransactionController) Callback(c echo.Context) error {
 	data.PaymentMethod = callbackRequest.PaymentMethod
 	data.PaymentChannel = callbackRequest.PaymentChannel
 	data.Status = callbackRequest.Status
-	
+
 	var refund float64
 
 	if callbackRequest.Status == "PAID" {
 		refund = 0
 	} else {
 		for _, item := range callbackRequest.Items {
-		refund += item.Price
-	}
+			refund += item.Price
+		}
 	}
 
 	_, err := tc.Repo.Callback(callbackRequest.ExternalID, data, refund)
