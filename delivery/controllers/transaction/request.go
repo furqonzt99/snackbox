@@ -18,6 +18,12 @@ type TransactionRequest struct {
 	Products []int `json:"products" validate:"required"`
 }
 
+type ShippingCostRequest struct {
+	PartnerID int `json:"partner_id" validate:"required"`
+	Latitude float64 `json:"latitude" validate:"required"`
+	Longtitude float64 `json:"longtitude" validate:"required"`
+}
+
 type TransactionValidator struct {
 	Validator *validator.Validate
 }
