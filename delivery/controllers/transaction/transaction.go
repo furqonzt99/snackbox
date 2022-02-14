@@ -83,6 +83,7 @@ func (tc *TransactionController) Order(c echo.Context) error {
 	response := TransactionResponse{
 		ID:             int(transactionOrder.ID),
 		UserID:         int(transactionOrder.UserID),
+		UserName: transactionOrder.User.Name,
 		PartnerID:      int(transactionOrder.PartnerID),
 		InvoiceID:      transactionOrder.InvoiceID,
 		Buffet:         transactionOrder.Buffet,
@@ -244,6 +245,7 @@ func (tc TransactionController) GetAll(c echo.Context) error {
 		response = append(response, TransactionResponse{
 			ID:             int(trx.ID),
 			UserID:         int(trx.UserID),
+			UserName: trx.User.Name,
 			PartnerID:      int(trx.PartnerID),
 			InvoiceID:      trx.InvoiceID,
 			Buffet:         trx.Buffet,
@@ -304,6 +306,7 @@ func (tc TransactionController) GetOne(c echo.Context) error {
 	response = append(response, TransactionResponse{
 		ID:             int(data.ID),
 		UserID:         int(data.UserID),
+		UserName: data.User.Name,
 		PartnerID:      int(data.PartnerID),
 		InvoiceID:      data.InvoiceID,
 		Buffet:         data.Buffet,
