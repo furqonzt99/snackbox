@@ -374,7 +374,7 @@ func TestLoginUser(t *testing.T) {
 }
 
 //======================
-//MOCK REPOSITORY
+//MOCK USER REPOSITORY
 //======================
 type mockUserRepository struct{}
 

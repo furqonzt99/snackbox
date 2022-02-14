@@ -426,7 +426,7 @@ func TestGetPartner(t *testing.T) {
 		context.SetParamValues("1")
 
 		partnerController := partner.NewPartnerController(mockPartnerRepository{})
-		partnerController.GetPartner()(context)
+		partnerController.GetPartnerProduct()(context)
 
 		var responses common.ResponseSuccess
 
@@ -443,7 +443,7 @@ func TestGetPartner(t *testing.T) {
 		context.SetParamValues("a")
 
 		partnerController := partner.NewPartnerController(mockPartnerRepository{})
-		partnerController.GetPartner()(context)
+		partnerController.GetPartnerProduct()(context)
 
 		var responses common.ResponseSuccess
 
@@ -507,7 +507,7 @@ func TestUpload(t *testing.T) {
 		context.SetPath("/partners/submission/upload")
 
 		partnerController := partner.NewPartnerController(mockPartnerRepository{})
-		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(partnerController.Upload())(context); err != nil {
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(partnerController.Upload)(context); err != nil {
 			log.Fatal(err)
 			return
 		}
