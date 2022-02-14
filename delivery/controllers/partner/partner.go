@@ -196,6 +196,35 @@ func (p PartnerController) RejectPartner() echo.HandlerFunc {
 	}
 }
 
+func (p PartnerController) GetPartnerData() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userJwt, _ := middlewares.ExtractTokenUser(c)
+
+		partner, err := p.Repo.GetPartner(userJwt.PartnerID)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+		}
+		// layoutFormat := "2006-01-02"
+		// date, _ := time.Parse(layoutFormat, partner.CreatedAt.String()[:11])
+		// fmt.Println(partner.CreatedAt.String()[:11])
+		// date := partner.CreatedAt.Format(time.RFC822Z)
+
+		partnerData := PartnerData{
+			ID:            int(partner.ID),
+			BussinessName: partner.BussinessName,
+			Description:   partner.Description,
+			Latitude:      partner.Latitude,
+			Longtitude:    partner.Longtitude,
+			Address:       partner.Address,
+			City:          partner.City,
+			LegalDocument: partner.LegalDocument,
+			Status:        partner.Status,
+			ApplyDate:     partner.CreatedAt.String()[:10],
+		}
+
+		return c.JSON(http.StatusOK, common.SuccessResponse(partnerData))
+	}
+}
 func (p PartnerController) GetPartner() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
@@ -329,7 +358,7 @@ func (p PartnerController) Report() echo.HandlerFunc {
 			for _, item := range transactions[i].Products {
 				items += item.Title + ", "
 			}
-			product := fmt.Sprint(items[:len(items)-2])
+			product := fmt.Sprint(items)[:len(items)-2]
 
 			temp = append(temp, date[:16])
 			temp = append(temp, invoice)

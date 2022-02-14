@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -480,17 +482,21 @@ func TestUpload(t *testing.T) {
 	t.Run("test upload", func(t *testing.T) {
 
 		//////////////////////////////////
-		body := new(bytes.Buffer)
+		body := &bytes.Buffer{}
+
 		writer := multipart.NewWriter(body)
-		writer.WriteField("legal_document", "file")
-		// writer.WriteField("wk", "10")
-		part, _ := writer.CreateFormFile("legal_document", "file.pdf")
-		part.Write([]byte(`sample`))
-		writer.Close() // <<< important part
+		fw, _ := writer.CreateFormFile("legal_document", "test.pdf")
+
+		file, _ := os.Open("test.pdf")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
 		//////////////////////////////////
 		e := echo.New()
 
-		req := httptest.NewRequest(http.MethodPost, "/", body)
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
 		res := httptest.NewRecorder()
 
 		// req.Header.Set("Content-Type", "application/json")
@@ -500,7 +506,7 @@ func TestUpload(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/partners/submission/upload")
 
-		partnerController := partner.NewPartnerController(mockFalsePartnerRepository{})
+		partnerController := partner.NewPartnerController(mockPartnerRepository{})
 		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(partnerController.Upload())(context); err != nil {
 			log.Fatal(err)
 			return
@@ -509,7 +515,7 @@ func TestUpload(t *testing.T) {
 		var responses common.ResponseSuccess
 
 		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
-		assert.Equal(t, "Not Found", responses.Message)
+		assert.Equal(t, "", responses.Message)
 	})
 
 }
@@ -541,29 +547,30 @@ func TestReport(t *testing.T) {
 		JwtToken = response.Data.(string)
 	})
 
-	// t.Run("test report", func(t *testing.T) {
-	// 	e := echo.New()
+	t.Run("test report", func(t *testing.T) {
+		e := echo.New()
 
-	// 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	// 	res := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := httptest.NewRecorder()
 
-	// 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 
-	// 	context := e.NewContext(req, res)
-	// 	context.SetPath("/partners/report")
+		context := e.NewContext(req, res)
+		context.SetPath("/partners/report")
 
-	// 	partnerController := partner.NewPartnerController(mockPartnerRepository{})
-	// 	if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(partnerController.Report())(context); err != nil {
-	// 		log.Fatal(err)
-	// 		return
-	// 	}
+		partnerController := partner.NewPartnerController(mockPartnerRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(partnerController.Report())(context); err != nil {
+			log.Fatal(err)
+			return
+		}
 
-	// 	var responses common.ResponseSuccess
+		var responses common.ResponseSuccess
 
-	// 	json.Unmarshal([]byte(res.Body.Bytes()), &responses)
-	// 	assert.Equal(t, "Successful Operation", responses.Message)
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Successful Operation", responses.Message)
 
-	// })
+	})
+
 	t.Run("test report failed", func(t *testing.T) {
 		e := echo.New()
 
@@ -718,6 +725,14 @@ func (m mockPartnerRepository) Report(partnerId int) ([]models.Transaction, erro
 			PaymentMethod:  "BANK TRANSFER",
 			PaidAt:         time.Time{},
 			Status:         "PAID",
+			Products: []models.Product{
+				{
+
+					Title: "udang",
+					Type:  "snack",
+					Price: 1000,
+				},
+			},
 		},
 	}, nil
 }

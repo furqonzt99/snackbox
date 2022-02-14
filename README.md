@@ -33,3 +33,23 @@ Each endpoint manipulates or displays information related to the User whose Toke
 - Delete user data by User ID : `DELETE /users`
 
 ### Partner Related
+
+Each endpoint manipulates or displays information related to the partner whose Token is provided with the request:
+
+- User apply as Partner : `POST /partners/submission`
+- Upload legal document as Partner : `POST "/partners/submission/upload"`
+- Get Partner data & their Product : `GET /partners/:id`
+- Get report PDF as Partner : `GET /partners/report`
+- Get all Partner information by Admin : `GET /partners/submission`
+- Accept request User as Partner by Admin : `PUT /partners /submission/:id/accept`
+- Reject request User as Partner by Admin : `PUT /partners/submission/:id/reject`
+
+### Product Related
+
+Each endpoint manipulates or displays information related to the Product whose Token is provided with the request:
+
+- Add a Product by Partner : `POST /products`
+- Update data Product by Partner : `PUT /products/:id`
+- Delete Product by Partner : `DELETE /products/:id`
+- Get All Product : `GET /products`
+- Upload image Product : PUT /products/:id/image`

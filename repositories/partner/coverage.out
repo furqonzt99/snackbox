@@ -33,6 +33,4 @@ github.com/furqonzt99/snackbox/repositories/partner/partner.go:119.16,121.3 1 1
 github.com/furqonzt99/snackbox/repositories/partner/partner.go:125.79,129.16 3 1
 github.com/furqonzt99/snackbox/repositories/partner/partner.go:132.2,132.21 1 1
 github.com/furqonzt99/snackbox/repositories/partner/partner.go:129.16,131.3 1 1
-github.com/furqonzt99/snackbox/repositories/partner/partner.go:135.81,139.16 3 0
-github.com/furqonzt99/snackbox/repositories/partner/partner.go:142.2,142.25 1 0
-github.com/furqonzt99/snackbox/repositories/partner/partner.go:139.16,141.3 1 0
+github.com/furqonzt99/snackbox/repositories/partner/partner.go:135.81,141.2 3 1

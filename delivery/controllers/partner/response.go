@@ -88,3 +88,16 @@ type ReportResponse struct {
 type ProductTitleResponse struct {
 	Title string `json:"title"`
 }
+
+type PartnerData struct {
+	ID            int     `json:"id"`
+	BussinessName string  `json:"bussiness_name"`
+	Description   string  `json:"description"`
+	Latitude      float64 `json:"latitude"`
+	Longtitude    float64 `json:"longtitude"`
+	Address       string  `json:"address"`
+	City          string  `json:"city"`
+	LegalDocument string  `json:"legal_document"`
+	Status        string  `json:"status"`
+	ApplyDate     string  `json:"apply_date"`
+}

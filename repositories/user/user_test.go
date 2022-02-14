@@ -1,10 +1,11 @@
-package user
+package user_test
 
 import (
 	"testing"
 
 	config "github.com/furqonzt99/snackbox/configs"
 	"github.com/furqonzt99/snackbox/models"
+	"github.com/furqonzt99/snackbox/repositories/user"
 	"github.com/furqonzt99/snackbox/seeder"
 	"github.com/furqonzt99/snackbox/utils"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,7 @@ import (
 
 var configTest *config.AppConfig
 var db *gorm.DB
-var userRepo *UserRepository
+var userRepo *user.UserRepository
 
 func TestRegisterUser(t *testing.T) {
 	configTest = config.GetConfig()
@@ -27,7 +28,7 @@ func TestRegisterUser(t *testing.T) {
 	db.Migrator().DropTable(&models.DetailTransaction{})
 	db.Migrator().DropTable(&models.Cashout{})
 
-	userRepo = NewUserRepo(db)
+	userRepo = user.NewUserRepo(db)
 
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Partner{})
@@ -72,7 +73,7 @@ func TestLoginUser(t *testing.T) {
 	db.Migrator().DropTable(&models.DetailTransaction{})
 	db.Migrator().DropTable(&models.Cashout{})
 
-	userRepo = NewUserRepo(db)
+	userRepo = user.NewUserRepo(db)
 
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Partner{})
@@ -118,7 +119,7 @@ func TestGetUser(t *testing.T) {
 	db.Migrator().DropTable(&models.DetailTransaction{})
 	db.Migrator().DropTable(&models.Cashout{})
 
-	userRepo = NewUserRepo(db)
+	userRepo = user.NewUserRepo(db)
 
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Partner{})
@@ -156,7 +157,7 @@ func TestUpdateUser(t *testing.T) {
 	db.Migrator().DropTable(&models.DetailTransaction{})
 	db.Migrator().DropTable(&models.Cashout{})
 
-	userRepo = NewUserRepo(db)
+	userRepo = user.NewUserRepo(db)
 
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Partner{})
@@ -206,7 +207,7 @@ func TestDeleteUser(t *testing.T) {
 	db.Migrator().DropTable(&models.DetailTransaction{})
 	db.Migrator().DropTable(&models.Cashout{})
 
-	userRepo = NewUserRepo(db)
+	userRepo = user.NewUserRepo(db)
 
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Partner{})

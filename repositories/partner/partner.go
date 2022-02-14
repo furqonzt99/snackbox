@@ -135,9 +135,7 @@ func (p *PartnerRepository) GetPartner(partnerId int) (models.Partner, error) {
 func (p *PartnerRepository) Report(partnerId int) ([]models.Transaction, error) {
 
 	var transaction []models.Transaction
-	err := p.db.Order("created_at desc").Where("status <> ? AND status <> ?", "PENDING", "UNPAID").Preload("User").Preload("Partner").Preload("Products").Find(&transaction, "partner_id = ?", partnerId).Error
-	if err != nil {
-		return transaction, err
-	}
+	p.db.Order("created_at desc").Where("status <> ? AND status <> ?", "PENDING", "UNPAID").Preload("User").Preload("Partner").Preload("Products").Find(&transaction, "partner_id = ?", partnerId)
+
 	return transaction, nil
 }
