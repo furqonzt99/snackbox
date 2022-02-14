@@ -13,7 +13,6 @@ type PartnerInterface interface {
 	FindUserId(userId int) (models.Partner, error)
 	AcceptPartner(partner models.Partner) error
 	RejectPartner(partner models.Partner) error
-	GetAllPartnerProduct() ([]models.Partner, error)
 	UploadDocument(partnerID int, partner models.Partner) (models.Partner, error)
 	Report(partnerId int) ([]models.Transaction, error)
 }
@@ -110,16 +109,6 @@ func (p *PartnerRepository) RejectPartner(partner models.Partner) error {
 	}
 
 	return nil
-}
-
-func (p *PartnerRepository) GetAllPartnerProduct() ([]models.Partner, error) {
-	var partner []models.Partner
-
-	err := p.db.Preload("Products").Find(&partner).Error
-	if err != nil {
-		return nil, err
-	}
-	return partner, nil
 }
 
 func (p *PartnerRepository) GetPartner(partnerId int) (models.Partner, error) {
