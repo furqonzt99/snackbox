@@ -83,10 +83,8 @@ func (cc CashoutController) Cashout(c echo.Context) error {
 }
 
 func (cc CashoutController) History(c echo.Context) error {
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	cashouts, err := cc.Repo.History(user.UserID)
 	if err != nil {
@@ -116,9 +114,7 @@ func (cc CashoutController) History(c echo.Context) error {
 func (cc CashoutController) Callback(c echo.Context) error {
 
 	var callbackRequest common.CashoutCallbackRequest
-	if err := c.Bind(&callbackRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+	c.Bind(&callbackRequest)
 
 	var data models.Cashout
 	data.ExternalID = callbackRequest.ExternalID

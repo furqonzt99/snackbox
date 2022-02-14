@@ -22,9 +22,7 @@ func NewRatingController(repo rating.RatingInterface) *RatingController {
 func (rc RatingController) Create(c echo.Context) error {
 	var ratingRequest PostRatingRequest
 
-	if err := c.Bind(&ratingRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+	c.Bind(&ratingRequest)
 
 	if err := c.Validate(&ratingRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
@@ -57,14 +55,14 @@ func (rc RatingController) Create(c echo.Context) error {
 	}
 
 	response := RatingResponse{
-		PartnerID:  int(ratingData.PartnerID),
-		UserID:   int(ratingData.UserID),
-		Username: ratingData.User.Name,
-		Rating:   ratingData.Rating,
-		Comment:  ratingData.Comment,
+		PartnerID: int(ratingData.PartnerID),
+		UserID:    int(ratingData.UserID),
+		Username:  ratingData.User.Name,
+		Rating:    ratingData.Rating,
+		Comment:   ratingData.Comment,
 	}
 
-	return c.JSON(http.StatusOK, common.SuccessResponse(response)) 
+	return c.JSON(http.StatusOK, common.SuccessResponse(response))
 }
 
 func (rc RatingController) GetByTrxID(c echo.Context) error {

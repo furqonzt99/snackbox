@@ -1,0 +1,18 @@
+mode: set
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:18.73,20.2 1 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:22.57,27.51 3 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:31.2,34.22 3 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:38.2,50.16 3 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:57.2,65.64 2 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:27.51,29.3 1 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:34.22,36.3 1 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:50.16,52.17 2 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:52.17,54.4 1 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:68.61,70.16 2 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:74.2,75.16 2 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:79.2,87.72 2 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:70.16,72.3 1 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/rating.go:75.16,77.3 1 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/request.go:21.58,22.47 1 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/request.go:26.2,26.12 1 1
+github.com/furqonzt99/snackbox/delivery/controllers/rating/request.go:22.47,25.3 1 1

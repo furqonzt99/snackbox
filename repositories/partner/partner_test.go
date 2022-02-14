@@ -407,58 +407,58 @@ func TestRejectPartner(t *testing.T) {
 
 }
 
-func TestGetAllPartnerProduct(t *testing.T) {
-	configTest = config.GetConfig()
-	db = utils.InitDB(configTest)
+// func TestGetAllPartnerProduct(t *testing.T) {
+// 	configTest = config.GetConfig()
+// 	db = utils.InitDB(configTest)
 
-	db.Migrator().DropTable(&models.User{})
-	db.Migrator().DropTable(&models.Partner{})
-	db.Migrator().DropTable(&models.Product{})
-	db.Migrator().DropTable(&models.Rating{})
-	db.Migrator().DropTable(&models.Transaction{})
-	db.Migrator().DropTable(&models.DetailTransaction{})
-	db.Migrator().DropTable(&models.Cashout{})
+// 	db.Migrator().DropTable(&models.User{})
+// 	db.Migrator().DropTable(&models.Partner{})
+// 	db.Migrator().DropTable(&models.Product{})
+// 	db.Migrator().DropTable(&models.Rating{})
+// 	db.Migrator().DropTable(&models.Transaction{})
+// 	db.Migrator().DropTable(&models.DetailTransaction{})
+// 	db.Migrator().DropTable(&models.Cashout{})
 
-	userRepo = usr.NewUserRepo(db)
-	partnerRepo = partner.NewPartnerRepo(db)
+// 	userRepo = usr.NewUserRepo(db)
+// 	partnerRepo = partner.NewPartnerRepo(db)
 
-	db.AutoMigrate(&models.User{})
-	db.AutoMigrate(&models.Partner{})
-	db.AutoMigrate(&models.Product{})
-	db.AutoMigrate(&models.Rating{})
-	db.AutoMigrate(&models.Transaction{})
-	db.AutoMigrate(&models.DetailTransaction{})
-	db.AutoMigrate(&models.Cashout{})
+// 	db.AutoMigrate(&models.User{})
+// 	db.AutoMigrate(&models.Partner{})
+// 	db.AutoMigrate(&models.Product{})
+// 	db.AutoMigrate(&models.Rating{})
+// 	db.AutoMigrate(&models.Transaction{})
+// 	db.AutoMigrate(&models.DetailTransaction{})
+// 	db.AutoMigrate(&models.Cashout{})
 
-	//CREATE USER
-	dummyUser := models.User{
+// 	//CREATE USER
+// 	dummyUser := models.User{
 
-		Email:    "test@gmail.com",
-		Password: "test1234",
-	}
-	userRepo.Register(dummyUser)
+// 		Email:    "test@gmail.com",
+// 		Password: "test1234",
+// 	}
+// 	userRepo.Register(dummyUser)
 
-	dummyPartner := models.Partner{
-		UserID:        1,
-		BussinessName: "partner1",
-		Status:        "pending",
-	}
-	partnerRepo.ApplyPartner(dummyPartner)
+// 	dummyPartner := models.Partner{
+// 		UserID:        1,
+// 		BussinessName: "partner1",
+// 		Status:        "pending",
+// 	}
+// 	partnerRepo.ApplyPartner(dummyPartner)
 
-	t.Run("get all partner product", func(t *testing.T) {
-		res, _ := partnerRepo.GetAllPartnerProduct()
-		assert.Equal(t, "partner1", res[0].BussinessName)
+// 	t.Run("get all partner product", func(t *testing.T) {
+// 		res, _ := partnerRepo.GetAllPartnerProduct()
+// 		assert.Equal(t, "partner1", res[0].BussinessName)
 
-	})
+// 	})
 
-	t.Run("get all partner product", func(t *testing.T) {
-		db.Migrator().DropTable(&models.Partner{})
-		res, _ := partnerRepo.GetAllPartnerProduct()
-		assert.Equal(t, []models.Partner([]models.Partner(nil)), res)
+// 	t.Run("get all partner product", func(t *testing.T) {
+// 		db.Migrator().DropTable(&models.Partner{})
+// 		res, _ := partnerRepo.GetAllPartnerProduct()
+// 		assert.Equal(t, []models.Partner([]models.Partner(nil)), res)
 
-	})
+// 	})
 
-}
+// }
 
 func TestGetPartner(t *testing.T) {
 	configTest = config.GetConfig()

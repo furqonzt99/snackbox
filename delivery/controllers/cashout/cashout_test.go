@@ -266,6 +266,127 @@ func TestCashout(t *testing.T) {
 	})
 }
 
+func TestHistory(t *testing.T) {
+	t.Run("Test Login", func(t *testing.T) {
+		e := echo.New()
+		e.Validator = &user.UserValidator{Validator: validator.New()}
+
+		requestBody, _ := json.Marshal(map[string]string{
+			"email":    "test@gmail.com",
+			"password": "test1234",
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		context := e.NewContext(req, res)
+		context.SetPath("/login")
+
+		userController := user.NewUsersControllers(mockUserRepository{})
+		userController.LoginController()(context)
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+
+		JwtToken = response.Data.(string)
+		assert.Equal(t, "Successful Operation", response.Message)
+		assert.NotNil(t, JwtToken)
+	})
+
+	t.Run("test history", func(t *testing.T) {
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/cashouts")
+
+		cashoutController := cashout.NewCashoutController(mockCashout{})
+		middleware.JWT([]byte(constants.JWT_SECRET_KEY))(cashoutController.History)(context)
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+
+		assert.Equal(t, "Successful Operation", response.Message)
+	})
+
+	t.Run("test history failed", func(t *testing.T) {
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/cashouts")
+
+		cashoutController := cashout.NewCashoutController(mockFalseCashout{})
+		middleware.JWT([]byte(constants.JWT_SECRET_KEY))(cashoutController.History)(context)
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+
+		assert.Equal(t, "Bad Request", response.Message)
+	})
+}
+
+func TestCashoutCallback(t *testing.T) {
+
+	t.Run("test callback success", func(t *testing.T) {
+		e := echo.New()
+
+		bodyReq, _ := json.Marshal(common.CashoutCallbackRequest{
+			ExternalID: "1",
+			Status:     "COMPLETED",
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(bodyReq))
+		res := httptest.NewRecorder()
+
+		// req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/cashouts/callback")
+
+		cashoutController := cashout.NewCashoutController(mockCashout{})
+		cashoutController.Callback(context)
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+
+		assert.Equal(t, "Successful Operation", response.Message)
+	})
+
+	t.Run("test callback failed", func(t *testing.T) {
+		e := echo.New()
+
+		bodyReq, _ := json.Marshal(common.CashoutCallbackRequest{
+			Status: "COMPLETED",
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(bodyReq))
+		res := httptest.NewRecorder()
+
+		// req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/cashouts/callback")
+
+		cashoutController := cashout.NewCashoutController(mockCashout3{})
+		cashoutController.Callback(context)
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+
+		assert.Equal(t, "Not Found", response.Message)
+	})
+}
+
 //==========================
 //MOCK CASHOUT
 //==========================
@@ -294,7 +415,8 @@ func (m mockCashout) CheckBalance(userID int) (models.User, error) {
 
 func (m mockCashout) CallbackSuccess(extID string, cashout models.Cashout) (models.Cashout, error) {
 	return models.Cashout{
-		UserID: 1,
+		ExternalID: "1",
+		UserID:     1,
 	}, nil
 }
 
@@ -343,6 +465,46 @@ func (m mockCashout2) CallbackFailed(extID string, cashout models.Cashout) (mode
 }
 
 //==========================
+//MOCK CASHOUT 3
+//==========================
+type mockCashout3 struct{}
+
+func (m mockCashout3) Cashout(cashout models.Cashout) (models.Cashout, error) {
+	return models.Cashout{
+		UserID: 1,
+	}, nil
+}
+
+func (m mockCashout3) History(userID int) ([]models.Cashout, error) {
+	return []models.Cashout{
+		{
+			UserID: 1,
+		},
+	}, nil
+}
+
+func (m mockCashout3) CheckBalance(userID int) (models.User, error) {
+	return models.User{
+		Email:   "test@gmail.com",
+		Balance: 2000,
+	}, nil
+}
+
+func (m mockCashout3) CallbackSuccess(extID string, cashout models.Cashout) (models.Cashout, error) {
+	return models.Cashout{
+		ExternalID: "1",
+		UserID:     1,
+	}, errors.New("FAILED")
+}
+
+func (m mockCashout3) CallbackFailed(extID string, cashout models.Cashout) (models.Cashout, error) {
+	return models.Cashout{
+		ExternalID: "1",
+		UserID:     1,
+	}, errors.New("FAILED")
+}
+
+//==========================
 //MOCK FALSE CASHOUT
 //==========================
 type mockFalseCashout struct{}
@@ -358,7 +520,7 @@ func (m mockFalseCashout) History(userID int) ([]models.Cashout, error) {
 		{
 			UserID: 1,
 		},
-	}, nil
+	}, errors.New("FAILED")
 }
 
 func (m mockFalseCashout) CheckBalance(userID int) (models.User, error) {
