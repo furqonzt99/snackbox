@@ -446,14 +446,14 @@ func TestGetAllPartnerProduct(t *testing.T) {
 	partnerRepo.ApplyPartner(dummyPartner)
 
 	t.Run("get all partner product", func(t *testing.T) {
-		res, _ := partnerRepo.GetAllPartnerProduct()
+		res, _ := partnerRepo.GetAllPartner()
 		assert.Equal(t, "partner1", res[0].BussinessName)
 
 	})
 
 	t.Run("get all partner product", func(t *testing.T) {
 		db.Migrator().DropTable(&models.Partner{})
-		res, _ := partnerRepo.GetAllPartnerProduct()
+		res, _ := partnerRepo.GetAllPartner()
 		assert.Equal(t, []models.Partner([]models.Partner(nil)), res)
 
 	})

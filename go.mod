@@ -35,7 +35,7 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.42.50
+	github.com/aws/aws-sdk-go v1.42.52
 	github.com/gabriel-vasile/mimetype v1.4.0
 	github.com/go-playground/validator/v10 v10.10.0
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
