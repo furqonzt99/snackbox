@@ -208,9 +208,11 @@ func (pc ProductController) Upload(c echo.Context) error {
 	if !filetype.IsImage(head) {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "file type must an image"))
 	}
+	
+	prefix := "products/"
 
 	fileID := strings.ReplaceAll(uuid.New().String(), "-", "")
-	file.Filename = fmt.Sprint(fileID, ".", kind.Extension)
+	file.Filename = fmt.Sprint(prefix, fileID, ".", kind.Extension)
 
 	if product.Image != "" {
 		if err := helper.GetObjectS3(product.Image); err == nil {
