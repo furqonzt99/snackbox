@@ -22,3 +22,8 @@ type TransactionResponse struct {
 	Status string `json:"status"`
 	Products []product.ProductResponse `json:"products"`
 }
+
+type ShippingCostResponse struct {
+	Distance float64 `json:"distance"`
+	Cost float64 `json:"cost"`
+}

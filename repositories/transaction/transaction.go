@@ -16,6 +16,7 @@ type TransactionInterface interface {
 	GetAllForUser(userID int) ([]models.Transaction, error)
 	GetOneForUser(trxID, userID int) (models.Transaction, error)
 	GetOneForPartner(trxID, partnerID int) (models.Transaction, error)
+	GetDistance(partnerID int, latitude, longtitude float64) (float64, error)
 
 	GetPartnerFromProduct(productID int) (models.Partner, error)
 	Callback(invId string, transaction models.Transaction, refund float64) (models.Transaction, error)
@@ -281,4 +282,21 @@ func (tr *TransactionRepository) Callback(invId string, transaction models.Trans
 	}
 
 	return transaction, nil
+}
+
+func (tr *TransactionRepository) GetDistance(partnerID int, latitude, longtitude float64) (float64, error) {
+	partner := models.Partner{}
+
+	if err := tr.db.First(&partner, partnerID).Error; err != nil {
+		return 0, err
+	}
+
+	var distance float64
+	const EARTH_RADIUS_IN_KILOMETER = 6371 
+
+	if err := tr.db.Raw("select (? * acos ( cos ( radians( ? ) ) * cos ( radians (latitude) ) * cos ( radians (longtitude) - radians( ? ) ) + sin(radians( ? )) * sin(radians(latitude)))) as distance from partners where id = ?", EARTH_RADIUS_IN_KILOMETER, latitude, longtitude, latitude, partnerID).Scan(&distance).Error; err != nil {
+		return 0, err
+	}
+
+	return distance, nil
 }
