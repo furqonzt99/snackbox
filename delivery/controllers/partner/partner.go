@@ -3,6 +3,7 @@ package partner
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -345,8 +346,10 @@ func (pc PartnerController) Upload(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "extension must .pdf"))
 	}
 
+	prefix := "legal-documents/"
+
 	fileID := strings.ReplaceAll(uuid.New().String(), "-", "")
-	file.Filename = fmt.Sprint(fileID, ".", kind.Extension)
+	file.Filename = fmt.Sprint(prefix, fileID, ".", kind.Extension)
 
 	if partner.LegalDocument != "" {
 		if err := helper.GetObjectS3(partner.LegalDocument); err == nil {
@@ -445,29 +448,32 @@ func (p PartnerController) Report() echo.HandlerFunc {
 			HeaderContentSpace:   2,
 			Line:                 true,
 		})
-		m.OutputFileAndClose("./report/list-transactions.pdf")
 
-		/////////////////////////////////////
-		responses := []ReportResponse{}
-		for _, item := range transactions {
-			responsesItem := []ProductTitleResponse{}
-			for _, data := range item.Products {
-				responsesItem = append(responsesItem, ProductTitleResponse{
-					Title: data.Title,
-				})
-			}
+		prefix := "reports/"
 
-			responses = append(responses, ReportResponse{
-				CreateAt:         item.CreatedAt,
-				InvoiceId:        item.InvoiceID,
-				TotalTransaction: item.TotalPrice,
-				Quantity:         item.Quantity,
-				PaymentChannel:   item.PaymentChannel,
-				Status:           item.Status,
-				Products:         responsesItem,
-			})
+		fileID := strings.ReplaceAll(uuid.New().String(), "-", "")
+		filename := fmt.Sprint(prefix, fileID, ".", "pdf")
 
+		path := fmt.Sprint("./", filename)
+
+		m.OutputFileAndClose(path)
+
+		file, err := os.OpenFile(path, os.O_RDWR, 0755)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, common.ErrorResponse(http.StatusInternalServerError, err.Error()))
 		}
+		defer os.Remove(path)
+
+		if err := helper.UploadObjectS3(filename, file); err != nil {
+			return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		}
+
+		reportLink := fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, filename)
+		
+		responses := ReportResponse{
+			ReportLink: reportLink,
+		}
+		
 		return c.JSON(http.StatusOK, common.SuccessResponse(responses))
 	}
 
