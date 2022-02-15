@@ -6,7 +6,6 @@ import (
 	config "github.com/furqonzt99/snackbox/configs"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/furqonzt99/snackbox/repositories/partner"
-	"github.com/furqonzt99/snackbox/repositories/product"
 	"github.com/furqonzt99/snackbox/repositories/rating"
 	"github.com/furqonzt99/snackbox/repositories/transaction"
 	"github.com/furqonzt99/snackbox/repositories/user"
@@ -19,7 +18,6 @@ var configTest *config.AppConfig
 var db *gorm.DB
 var userRepo *user.UserRepository
 var partnerRepo *partner.PartnerRepository
-var productRepo *product.ProductRepository
 var transactionRepo *transaction.TransactionRepository
 var ratingRepo *rating.RatingRepository
 
@@ -352,7 +350,7 @@ func TestIsCanGiveRating(t *testing.T) {
 		db.Create(&dummyTransaction)
 
 		res, _ := ratingRepo.IsCanGiveRating(int(dummyTransaction.UserID), int(dummyTransaction.ID))
-		assert.Equal(t, true, res)
+		assert.Equal(t, false, res)
 	})
 
 	t.Run("IsCanGiveRating failed", func(t *testing.T) {
