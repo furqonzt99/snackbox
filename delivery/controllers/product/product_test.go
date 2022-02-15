@@ -626,7 +626,7 @@ func (m mockProductRepository) FindProduct(productId, partnerId int) (models.Pro
 func (m mockProductRepository) DeleteProduct(productId, partnerId int) error {
 	return nil
 }
-func (m mockProductRepository) GetAllProduct(offset, pageSize int, search string) ([]models.Product, error) {
+func (m mockProductRepository) GetAllProduct(offset, pageSize int, search, category string, latitude, longtitude float64) ([]models.Product, error) {
 	return []models.Product{
 		{
 			Title:       "testProduct1",
@@ -684,7 +684,7 @@ func (m mockFalseProductRepository) FindProduct(productId, partnerId int) (model
 func (m mockFalseProductRepository) DeleteProduct(productId, partnerId int) error {
 	return errors.New("failed")
 }
-func (m mockFalseProductRepository) GetAllProduct(offset, pageSize int, search string) ([]models.Product, error) {
+func (m mockFalseProductRepository) GetAllProduct(offset, pageSize int, search, category string, latitude, longtitude float64) ([]models.Product, error) {
 	return nil, errors.New("failed")
 }
 
@@ -735,7 +735,7 @@ func (m mockFalseProductRepository2) FindProduct(productId, partnerId int) (mode
 func (m mockFalseProductRepository2) DeleteProduct(productId, partnerId int) error {
 	return errors.New("failed")
 }
-func (m mockFalseProductRepository2) GetAllProduct(offset, pageSize int, search string) ([]models.Product, error) {
+func (m mockFalseProductRepository2) GetAllProduct(offset, pageSize int, search, category string, latitude, longtitude float64) ([]models.Product, error) {
 	return nil, errors.New("failed")
 }
 

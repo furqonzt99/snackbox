@@ -310,14 +310,14 @@ func TestGetAllProduct(t *testing.T) {
 			Price:       1000,
 		}
 		productRepo.AddProduct(dummyProduct)
-		res, _ := productRepo.GetAllProduct(1, 10, "rendang")
+		res, _ := productRepo.GetAllProduct(1, 10, "rendang", "", 0, 0)
 		assert.Equal(t, "rendang", res[0].Title)
 
 	})
 	t.Run("get all product failed", func(t *testing.T) {
 		db.Migrator().DropTable(&models.Product{})
 
-		res, _ := productRepo.GetAllProduct(11, 10, "nasi")
+		res, _ := productRepo.GetAllProduct(11, 10, "nasi", "", 0, 0)
 		assert.Equal(t, []models.Product(nil), res)
 
 	})

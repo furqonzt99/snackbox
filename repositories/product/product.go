@@ -9,7 +9,7 @@ type ProductInterface interface {
 	AddProduct(product models.Product) (models.Product, error)
 	FindProduct(productId, partnerId int) (models.Product, error)
 	DeleteProduct(productId, partnerId int) error
-	GetAllProduct(offset, pageSize int, search string) ([]models.Product, error)
+	GetAllProduct(offset, pageSize int, search, category string, latitude, longtitude float64) ([]models.Product, error)
 	UploadImage(productID int, product models.Product) (models.Product, error)
 }
 
@@ -63,10 +63,19 @@ func (p *ProductRepository) DeleteProduct(productId, partnerId int) error {
 	return nil
 }
 
-func (p *ProductRepository) GetAllProduct(offset, pageSize int, search string) ([]models.Product, error) {
+func (p *ProductRepository) GetAllProduct(offset, pageSize int, search, category string, latitude, longtitude float64) ([]models.Product, error) {
 	var products []models.Product
 
-	err := p.db.Offset(offset).Limit(pageSize).Where("title LIKE ?", "%"+search+"%").Find(&products).Error
+	nearestPartner := []int{}
+	const EARTH_RADIUS_IN_KILOMETER = 6371 
+	const MAX_DISTANCE = 10 
+
+	if latitude != 0 && longtitude != 0 {
+		p.db.Raw("select id, (? * acos ( cos ( radians( ? ) ) * cos ( radians (latitude) ) * cos ( radians (longtitude) - radians( ? ) ) + sin(radians( ? )) * sin(radians(latitude)))) as distance from partners having distance < ? order by distance", EARTH_RADIUS_IN_KILOMETER, latitude, longtitude, latitude, MAX_DISTANCE).Scan(&nearestPartner)
+		p.db.Find(&products, "partner_id IN ?", nearestPartner)
+	}
+
+	err := p.db.Offset(offset).Limit(pageSize).Where("title LIKE ? AND type LIKE ?", "%"+search+"%", "%"+category+"%").Find(&products).Error
 	if err != nil {
 		return nil, err
 	}

@@ -118,6 +118,20 @@ func (p ProductController) GetAllProduct() echo.HandlerFunc {
 		page, _ := strconv.Atoi(c.QueryParam("page"))
 		perpage, _ := strconv.Atoi(c.QueryParam("perpage"))
 		search := c.QueryParam("search")
+		category := c.QueryParam("category")
+
+		// location param to search by distance ex: -7.741485,111.341555
+		location := c.QueryParam("location")
+		loc := strings.Split(location, ",")
+		var latitude float64
+		var longtitude float64
+		if len(loc) == 2 {
+			latitude, _ = strconv.ParseFloat(loc[0], 64)
+			longtitude, _ = strconv.ParseFloat(loc[1], 64)
+		} else {
+			latitude = 0
+			longtitude = 0
+		}
 
 		if page == 0 {
 			page = 1
@@ -129,7 +143,7 @@ func (p ProductController) GetAllProduct() echo.HandlerFunc {
 
 		offset := (page - 1) * perpage
 
-		allProduct, _ := p.Repo.GetAllProduct(offset, perpage, search)
+		allProduct, _ := p.Repo.GetAllProduct(offset, perpage, search, category, latitude, longtitude)
 
 		productData := []GetProductWithPartnerResponse{}
 		for _, item := range allProduct {

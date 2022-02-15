@@ -16,6 +16,7 @@ type TransactionInterface interface {
 	GetAllForUser(userID int) ([]models.Transaction, error)
 	GetOneForUser(trxID, userID int) (models.Transaction, error)
 	GetOneForPartner(trxID, partnerID int) (models.Transaction, error)
+	GetDistance(partnerID int, latitude, longtitude float64) (float64, error)
 
 	GetPartnerFromProduct(productID int) (models.Partner, error)
 	Callback(invId string, transaction models.Transaction, refund float64) (models.Transaction, error)
@@ -64,7 +65,6 @@ func (tr *TransactionRepository) Order(transaction models.Transaction, email str
 
 		var transactionPayment models.Transaction
 
-		
 		transactionPayment, err = helper.CreateInvoice(transaction, email, user.Balance)
 		if err != nil {
 			return err
@@ -88,6 +88,10 @@ func (tr *TransactionRepository) Order(transaction models.Transaction, email str
 	})
 
 	if err != nil {
+		return transaction, err
+	}
+
+	if err := tr.db.Preload("User").Preload("Products").First(&transaction, transaction.ID).Error; err != nil {
 		return transaction, err
 	}
 
@@ -190,7 +194,7 @@ func (tr *TransactionRepository) GetAllForPartner(partnerID int) ([]models.Trans
 
 	const PAID_STATUS = "PAID"
 
-	if err := tr.db.Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).Find(&trx).Error; err != nil {
+	if err := tr.db.Preload("User").Preload("Products").Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).Find(&trx).Error; err != nil {
 		return nil, err
 	}
 
@@ -200,7 +204,7 @@ func (tr *TransactionRepository) GetAllForPartner(partnerID int) ([]models.Trans
 func (tr *TransactionRepository) GetAllForUser(userID int) ([]models.Transaction, error) {
 	trx := []models.Transaction{}
 
-	if err := tr.db.Where("user_id = ?", userID).Find(&trx).Error; err != nil {
+	if err := tr.db.Preload("User").Preload("Products").Where("user_id = ?", userID).Find(&trx).Error; err != nil {
 		return nil, err
 	}
 
@@ -210,7 +214,7 @@ func (tr *TransactionRepository) GetAllForUser(userID int) ([]models.Transaction
 func (tr *TransactionRepository) GetOneForUser(trxID, userID int) (models.Transaction, error) {
 	trx := models.Transaction{}
 
-	if err := tr.db.Where("user_id = ?", userID).First(&trx, trxID).Error; err != nil {
+	if err := tr.db.Preload("User").Preload("Products").Where("user_id = ?", userID).First(&trx, trxID).Error; err != nil {
 		return trx, err
 	}
 
@@ -222,7 +226,7 @@ func (tr *TransactionRepository) GetOneForPartner(trxID, partnerID int) (models.
 
 	const PAID_STATUS = "PAID"
 
-	if err := tr.db.Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).First(&trx, trxID).Error; err != nil {
+	if err := tr.db.Preload("User").Preload("Products").Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).First(&trx, trxID).Error; err != nil {
 		return trx, err
 	}
 
@@ -278,4 +282,21 @@ func (tr *TransactionRepository) Callback(invId string, transaction models.Trans
 	}
 
 	return transaction, nil
+}
+
+func (tr *TransactionRepository) GetDistance(partnerID int, latitude, longtitude float64) (float64, error) {
+	partner := models.Partner{}
+
+	if err := tr.db.First(&partner, partnerID).Error; err != nil {
+		return 0, err
+	}
+
+	var distance float64
+	const EARTH_RADIUS_IN_KILOMETER = 6371 
+
+	if err := tr.db.Raw("select (? * acos ( cos ( radians( ? ) ) * cos ( radians (latitude) ) * cos ( radians (longtitude) - radians( ? ) ) + sin(radians( ? )) * sin(radians(latitude)))) as distance from partners where id = ?", EARTH_RADIUS_IN_KILOMETER, latitude, longtitude, latitude, partnerID).Scan(&distance).Error; err != nil {
+		return 0, err
+	}
+
+	return distance, nil
 }

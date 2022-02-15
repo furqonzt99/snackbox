@@ -22,7 +22,18 @@ func CreateInvoice(transaction models.Transaction, email string, balance float64
 		})
 	}
 
-	transaction.TotalPrice = SumTotalPrice(items)
+	shippingCost := CalculateShippingCost(transaction.Distance)
+
+	items = append(items, xendit.InvoiceItem{
+		Name:     "Shipping Cost",
+		Price:    shippingCost,
+		Quantity: 1,
+	})
+   transaction.TotalPrice = SumTotalPrice(items)
+
+   fmt.Println(transaction.TotalPrice)
+   
+   fmt.Println(transaction.TotalPrice)
 
 	totalPay := transaction.TotalPrice - balance
 

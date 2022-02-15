@@ -10,6 +10,7 @@ import (
 	"github.com/furqonzt99/snackbox/delivery/common"
 	"github.com/furqonzt99/snackbox/delivery/controllers/product"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
+	"github.com/furqonzt99/snackbox/helper"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/furqonzt99/snackbox/repositories/transaction"
 	"github.com/google/uuid"
@@ -51,6 +52,11 @@ func (tc *TransactionController) Order(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "you must reservate 3 days before the event time!"))
 	}
 
+	distance, err := tc.Repo.GetDistance(int(partner.ID), transactionRequest.Latitude, transactionRequest.Longtitude)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+	}
+
 	transaction := models.Transaction{
 		UserID:     uint(user.UserID),
 		PartnerID:  uint(partner.ID),
@@ -59,6 +65,7 @@ func (tc *TransactionController) Order(c echo.Context) error {
 		DateTime:   dateTime,
 		Latitude:   transactionRequest.Latitude,
 		Longtitude: transactionRequest.Longtitude,
+		Distance:   distance,
 		InvoiceID:  invoiceId,
 	}
 
@@ -81,6 +88,7 @@ func (tc *TransactionController) Order(c echo.Context) error {
 	response := TransactionResponse{
 		ID:             int(transactionOrder.ID),
 		UserID:         int(transactionOrder.UserID),
+		UserName:       transactionOrder.User.Name,
 		PartnerID:      int(transactionOrder.PartnerID),
 		InvoiceID:      transactionOrder.InvoiceID,
 		Buffet:         transactionOrder.Buffet,
@@ -231,6 +239,7 @@ func (tc TransactionController) GetAll(c echo.Context) error {
 		response = append(response, TransactionResponse{
 			ID:             int(trx.ID),
 			UserID:         int(trx.UserID),
+			UserName:       trx.User.Name,
 			PartnerID:      int(trx.PartnerID),
 			InvoiceID:      trx.InvoiceID,
 			Buffet:         trx.Buffet,
@@ -291,6 +300,7 @@ func (tc TransactionController) GetOne(c echo.Context) error {
 	response = append(response, TransactionResponse{
 		ID:             int(data.ID),
 		UserID:         int(data.UserID),
+		UserName:       data.User.Name,
 		PartnerID:      int(data.PartnerID),
 		InvoiceID:      data.InvoiceID,
 		Buffet:         data.Buffet,
@@ -307,6 +317,32 @@ func (tc TransactionController) GetOne(c echo.Context) error {
 		Status:         data.Status,
 		Products:       productItems,
 	})
+
+	return c.JSON(http.StatusOK, common.SuccessResponse(response))
+}
+
+func (tc TransactionController) Shipping(c echo.Context) error {
+	var shippingRequest ShippingCostRequest
+
+	if err := c.Bind(&shippingRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	if err := c.Validate(&shippingRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	distance, err := tc.Repo.GetDistance(shippingRequest.PartnerID, shippingRequest.Latitude, shippingRequest.Longtitude)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+	}
+
+	cost := helper.CalculateShippingCost(distance)
+
+	response := ShippingCostResponse{
+		Distance: distance,
+		Cost:     cost,
+	}
 
 	return c.JSON(http.StatusOK, common.SuccessResponse(response))
 }
