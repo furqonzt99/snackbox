@@ -29,8 +29,11 @@ func CreateInvoice(transaction models.Transaction, email string, balance float64
 		Price:    shippingCost,
 		Quantity: 1,
 	})
+   transaction.TotalPrice = SumTotalPrice(items)
 
-	transaction.TotalPrice = SumTotalPrice(items) + shippingCost
+   fmt.Println(transaction.TotalPrice)
+   
+   fmt.Println(transaction.TotalPrice)
 
 	totalPay := transaction.TotalPrice - balance
 
