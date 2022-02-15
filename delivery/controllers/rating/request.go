@@ -9,7 +9,6 @@ import (
 )
 
 type PostRatingRequest struct {
-	PartnerID int `json:"partner_id" validate:"required"`
 	Rating int `json:"rating" validate:"required,max=5,min=1"`
 	Comment string `json:"comment"`
 }
