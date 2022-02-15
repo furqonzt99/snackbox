@@ -8,7 +8,7 @@ import (
 type RatingInterface interface {
 	Create(rating models.Rating) (models.Rating, error)
 	Update(models.Rating) (models.Rating, error)
-	IsCanGiveRating(userId, transactionId int) (bool, error)
+	IsCanGiveRating(userId, transactionId int) (models.Transaction, error)
 	GetByTrxID(trxID int) (models.Rating, error) 
 }
 
@@ -20,16 +20,16 @@ func NewRatingRepository(db *gorm.DB) *RatingRepository {
 	return &RatingRepository{db: db}
 }
 
-func (rr RatingRepository) IsCanGiveRating(userId, transactionId int) (bool, error) {
+func (rr RatingRepository) IsCanGiveRating(userId, transactionId int) (models.Transaction, error) {
 	var transaction models.Transaction
 
 	const CONFIRM_STATUS = "CONFIRM"
 
 	if err := rr.db.Where("user_id = ? AND transaction_id = ? AND status = ?", userId, transactionId, CONFIRM_STATUS).First(&transaction).Error; err != nil {
-		return false, err
+		return transaction, err
 	}
 
-	return true, nil
+	return transaction, nil
 }
 
 func (rr *RatingRepository) Create(rating models.Rating) (models.Rating, error) {
