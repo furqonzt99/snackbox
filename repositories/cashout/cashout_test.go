@@ -7,8 +7,6 @@ import (
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/furqonzt99/snackbox/repositories/cashout"
 	"github.com/furqonzt99/snackbox/repositories/partner"
-	"github.com/furqonzt99/snackbox/repositories/product"
-	"github.com/furqonzt99/snackbox/repositories/transaction"
 	"github.com/furqonzt99/snackbox/repositories/user"
 	"github.com/furqonzt99/snackbox/utils"
 	"github.com/stretchr/testify/assert"
@@ -19,8 +17,6 @@ var configTest *config.AppConfig
 var db *gorm.DB
 var userRepo *user.UserRepository
 var partnerRepo *partner.PartnerRepository
-var productRepo *product.ProductRepository
-var transactionRepo *transaction.TransactionRepository
 var cashoutRepo *cashout.CashoutRepository
 
 func TestCashout(t *testing.T) {
