@@ -21,20 +21,26 @@ Snackbox can make it easier for customers to order snacks and rice boxes and do 
 
 ## Installation
 
-Clone this repo
+- Clone this repo
 
 ```bash
 git clone https://github.com/furqonzt99/snackbox.git snackbox
 ```
 
-go to repository folder
+- Go to repository folder
 
 ```bash
 cd snackbox
 go mod tidy
 ```
 
-create .env file and add the following environment (you can see the variables from .env.example)
+- Create .env file and add the following environment (you can see the variables from .env.example)
+
+- Run this app
+
+```bash
+go run .
+```
 
 ## Use Case Diagram
 
