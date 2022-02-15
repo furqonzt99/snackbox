@@ -19,6 +19,23 @@ Snackbox can make it easier for customers to order snacks and rice boxes and do 
 - AWS S3 Integration
 - PDF Export (Maroto)
 
+## Installation
+
+Clone this repo
+
+```bash
+git clone https://github.com/furqonzt99/snackbox.git snackbox
+```
+
+go to repository folder
+
+```bash
+cd snackbox
+go mod tidy
+```
+
+create .env file and add the following environment (you can see the variables from .env.example)
+
 ## Use Case Diagram
 
 ![Use Case Diagram](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-ucd.png)
