@@ -982,57 +982,76 @@ func TestShippingTransaction(t *testing.T) {
 		assert.Equal(t, "Successful Operation", responses.Message)
 	})
 
-	// t.Run("confirm transaction badrequest param", func(t *testing.T) {
+	t.Run("shipping bad request", func(t *testing.T) {
 
-	// 	e := echo.New()
+		e := echo.New()
 
-	// 	req := httptest.NewRequest(http.MethodPost, "/", nil)
-	// 	res := httptest.NewRecorder()
+		e.Validator = &transaction.TransactionValidator{Validator: validator.New()}
 
-	// 	req.Header.Set("Content-Type", "application/json")
-	// 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+		requestBody, _ := json.Marshal(transaction.ShippingCostRequest{
+			// PartnerID:  1,
+			Latitude:   100,
+			Longtitude: 100,
+		})
 
-	// 	context := e.NewContext(req, res)
-	// 	context.SetPath("/transactions/:id")
-	// 	context.SetParamNames("id")
-	// 	context.SetParamValues("a")
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
 
-	// 	transactionController := transaction.NewTransactionController(mockTransaction{})
-	// 	if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.GetOne)(context); err != nil {
-	// 		log.Fatal(err)
-	// 		return
-	// 	}
-	// 	var responses common.ResponseSuccess
+		res := httptest.NewRecorder()
 
-	// 	json.Unmarshal([]byte(res.Body.Bytes()), &responses)
-	// 	assert.Equal(t, "Bad Request", responses.Message)
-	// })
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 
-	// t.Run("confirm transaction err Repo.GetOneForUser", func(t *testing.T) {
+		context := e.NewContext(req, res)
+		context.SetPath("/transactions/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
 
-	// 	e := echo.New()
+		transactionController := transaction.NewTransactionController(mockTransaction{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.Shipping)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+		var responses common.ResponseSuccess
 
-	// 	req := httptest.NewRequest(http.MethodPost, "/", nil)
-	// 	res := httptest.NewRecorder()
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, 400, responses.Code)
+	})
 
-	// 	req.Header.Set("Content-Type", "application/json")
-	// 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+	t.Run("shipping err Repo.GetDistance", func(t *testing.T) {
 
-	// 	context := e.NewContext(req, res)
-	// 	context.SetPath("/transactions/:id/reject")
-	// 	context.SetParamNames("id")
-	// 	context.SetParamValues("1")
-	// 	//yoga
-	// 	transactionController := transaction.NewTransactionController(mockFalseTransaction{})
-	// 	if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.GetOne)(context); err != nil {
-	// 		log.Fatal(err)
-	// 		return
-	// 	}
-	// 	var responses common.ResponseSuccess
+		e := echo.New()
 
-	// 	json.Unmarshal([]byte(res.Body.Bytes()), &responses)
-	// 	assert.Equal(t, "Not Found", responses.Message)
-	// })
+		e.Validator = &transaction.TransactionValidator{Validator: validator.New()}
+
+		requestBody, _ := json.Marshal(transaction.ShippingCostRequest{
+			PartnerID:  1,
+			Latitude:   100,
+			Longtitude: 100,
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
+
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/transactions/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		transactionController := transaction.NewTransactionController(mockFalseTransaction{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.Shipping)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Bad Request", responses.Message)
+	})
+
 }
 
 //======================
