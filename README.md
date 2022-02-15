@@ -63,7 +63,9 @@ go run .
 
 [Wire Flow](https://whimsical.com/snackbox-UcYKhew5MBhFzJWaCXQbAb)
 
-## Code Structure
+## Structure
+
+![Structure](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-structure.png)
 
 ## Unit Test
 
