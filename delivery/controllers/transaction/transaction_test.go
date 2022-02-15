@@ -646,7 +646,114 @@ func TestSendTransaction(t *testing.T) {
 		var responses common.ResponseSuccess
 
 		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Not Found", responses.Message)
+	})
+}
+
+func TestConfirmTransaction(t *testing.T) {
+	t.Run("Login", func(t *testing.T) {
+		e := echo.New()
+		e.Validator = &user.UserValidator{Validator: validator.New()}
+
+		requestBody, _ := json.Marshal(map[string]string{
+			"email":    "test@gmail.com",
+			"password": "test1234",
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		context := e.NewContext(req, res)
+		context.SetPath("/login")
+
+		userController := user.NewUsersControllers(mockUserRepository{})
+		userController.LoginController()(context)
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+
+		JwtToken = response.Data.(string)
+		assert.Equal(t, "Successful Operation", response.Message)
+		assert.NotNil(t, JwtToken)
+	})
+
+	t.Run("confirm transaction success", func(t *testing.T) {
+
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/transactions/:id/reject")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		transactionController := transaction.NewTransactionController(mockTransaction{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.Confirm)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
 		assert.Equal(t, "Successful Operation", responses.Message)
+	})
+
+	t.Run("confirm transaction badrequest param", func(t *testing.T) {
+
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/transactions/:id/reject")
+		context.SetParamNames("id")
+		context.SetParamValues("a")
+
+		transactionController := transaction.NewTransactionController(mockTransaction{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.Confirm)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Bad Request", responses.Message)
+	})
+
+	t.Run("confirm transaction err Repo.Confirm", func(t *testing.T) {
+
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/transactions/:id/reject")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		transactionController := transaction.NewTransactionController(mockFalseTransaction{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.Send)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Not Found", responses.Message)
 	})
 }
 
@@ -774,14 +881,14 @@ func (m mockFalseTransaction) Send(trxID, partnerID int) (models.Transaction, er
 	return models.Transaction{
 		UserID:    1,
 		PartnerID: 2,
-	}, nil
+	}, errors.New("FAILED")
 }
 
 func (m mockFalseTransaction) Confirm(trxID, userID int) (models.Transaction, error) {
 	return models.Transaction{
 		UserID:    1,
 		PartnerID: 2,
-	}, nil
+	}, errors.New("FAILED")
 }
 
 func (m mockFalseTransaction) GetAllForPartner(partnerID int) ([]models.Transaction, error) {

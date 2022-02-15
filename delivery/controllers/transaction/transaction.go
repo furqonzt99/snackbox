@@ -196,10 +196,7 @@ func (tc TransactionController) Confirm(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	_, err = tc.Repo.Confirm(trxID, user.UserID)
 	if err != nil {
@@ -210,10 +207,7 @@ func (tc TransactionController) Confirm(c echo.Context) error {
 }
 
 func (tc TransactionController) GetAll(c echo.Context) error {
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	var data []models.Transaction
 	if user.PartnerID != 0 {
