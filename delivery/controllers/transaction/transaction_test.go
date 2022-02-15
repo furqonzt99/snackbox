@@ -634,7 +634,7 @@ func TestSendTransaction(t *testing.T) {
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 
 		context := e.NewContext(req, res)
-		context.SetPath("/transactions/:id/reject")
+		context.SetPath("/transactions/:id/send")
 		context.SetParamNames("id")
 		context.SetParamValues("1")
 
@@ -689,7 +689,7 @@ func TestConfirmTransaction(t *testing.T) {
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 
 		context := e.NewContext(req, res)
-		context.SetPath("/transactions/:id/reject")
+		context.SetPath("/transactions/:id/confirm")
 		context.SetParamNames("id")
 		context.SetParamValues("1")
 
@@ -715,7 +715,7 @@ func TestConfirmTransaction(t *testing.T) {
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 
 		context := e.NewContext(req, res)
-		context.SetPath("/transactions/:id/reject")
+		context.SetPath("/transactions/:id/confirm")
 		context.SetParamNames("id")
 		context.SetParamValues("a")
 
@@ -741,12 +741,12 @@ func TestConfirmTransaction(t *testing.T) {
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 
 		context := e.NewContext(req, res)
-		context.SetPath("/transactions/:id/reject")
+		context.SetPath("/transactions/:id/confirm")
 		context.SetParamNames("id")
 		context.SetParamValues("1")
-
+		//yoga
 		transactionController := transaction.NewTransactionController(mockFalseTransaction{})
-		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.Send)(context); err != nil {
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.Confirm)(context); err != nil {
 			log.Fatal(err)
 			return
 		}
@@ -755,6 +755,284 @@ func TestConfirmTransaction(t *testing.T) {
 		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
 		assert.Equal(t, "Not Found", responses.Message)
 	})
+}
+
+func TestGetAllTransaction(t *testing.T) {
+	t.Run("Login", func(t *testing.T) {
+		e := echo.New()
+		e.Validator = &user.UserValidator{Validator: validator.New()}
+
+		requestBody, _ := json.Marshal(map[string]string{
+			"email":    "test@gmail.com",
+			"password": "test1234",
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		context := e.NewContext(req, res)
+		context.SetPath("/login")
+
+		userController := user.NewUsersControllers(mockUserRepository{})
+		userController.LoginController()(context)
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+
+		JwtToken = response.Data.(string)
+		assert.Equal(t, "Successful Operation", response.Message)
+		assert.NotNil(t, JwtToken)
+	})
+
+	t.Run("get all transaction success", func(t *testing.T) {
+
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/transactions/:id/reject")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		transactionController := transaction.NewTransactionController(mockTransaction{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.GetAll)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Successful Operation", responses.Message)
+	})
+}
+
+func TestGetOneTransaction(t *testing.T) {
+	t.Run("Login", func(t *testing.T) {
+		e := echo.New()
+		e.Validator = &user.UserValidator{Validator: validator.New()}
+
+		requestBody, _ := json.Marshal(map[string]string{
+			"email":    "test@gmail.com",
+			"password": "test1234",
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		context := e.NewContext(req, res)
+		context.SetPath("/login")
+
+		userController := user.NewUsersControllers(mockUserRepository{})
+		userController.LoginController()(context)
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+
+		JwtToken = response.Data.(string)
+		assert.Equal(t, "Successful Operation", response.Message)
+		assert.NotNil(t, JwtToken)
+	})
+
+	t.Run("getone transaction success", func(t *testing.T) {
+
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/transactions/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		transactionController := transaction.NewTransactionController(mockTransaction{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.GetOne)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Successful Operation", responses.Message)
+	})
+
+	t.Run("confirm transaction badrequest param", func(t *testing.T) {
+
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/transactions/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("a")
+
+		transactionController := transaction.NewTransactionController(mockTransaction{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.GetOne)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Bad Request", responses.Message)
+	})
+
+	t.Run("confirm transaction err Repo.GetOneForUser", func(t *testing.T) {
+
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/transactions/:id/reject")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+		//yoga
+		transactionController := transaction.NewTransactionController(mockFalseTransaction{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.GetOne)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Not Found", responses.Message)
+	})
+}
+
+func TestShippingTransaction(t *testing.T) {
+	t.Run("Login", func(t *testing.T) {
+		e := echo.New()
+		e.Validator = &user.UserValidator{Validator: validator.New()}
+
+		requestBody, _ := json.Marshal(map[string]string{
+			"email":    "test@gmail.com",
+			"password": "test1234",
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		context := e.NewContext(req, res)
+		context.SetPath("/login")
+
+		userController := user.NewUsersControllers(mockUserRepository{})
+		userController.LoginController()(context)
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+
+		JwtToken = response.Data.(string)
+		assert.Equal(t, "Successful Operation", response.Message)
+		assert.NotNil(t, JwtToken)
+	})
+
+	t.Run("shipping success", func(t *testing.T) {
+
+		e := echo.New()
+
+		e.Validator = &transaction.TransactionValidator{Validator: validator.New()}
+
+		requestBody, _ := json.Marshal(transaction.ShippingCostRequest{
+			PartnerID:  1,
+			Latitude:   100,
+			Longtitude: 100,
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
+
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/transactions/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		transactionController := transaction.NewTransactionController(mockTransaction{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.Shipping)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Successful Operation", responses.Message)
+	})
+
+	// t.Run("confirm transaction badrequest param", func(t *testing.T) {
+
+	// 	e := echo.New()
+
+	// 	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	// 	res := httptest.NewRecorder()
+
+	// 	req.Header.Set("Content-Type", "application/json")
+	// 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+	// 	context := e.NewContext(req, res)
+	// 	context.SetPath("/transactions/:id")
+	// 	context.SetParamNames("id")
+	// 	context.SetParamValues("a")
+
+	// 	transactionController := transaction.NewTransactionController(mockTransaction{})
+	// 	if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.GetOne)(context); err != nil {
+	// 		log.Fatal(err)
+	// 		return
+	// 	}
+	// 	var responses common.ResponseSuccess
+
+	// 	json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+	// 	assert.Equal(t, "Bad Request", responses.Message)
+	// })
+
+	// t.Run("confirm transaction err Repo.GetOneForUser", func(t *testing.T) {
+
+	// 	e := echo.New()
+
+	// 	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	// 	res := httptest.NewRecorder()
+
+	// 	req.Header.Set("Content-Type", "application/json")
+	// 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+	// 	context := e.NewContext(req, res)
+	// 	context.SetPath("/transactions/:id/reject")
+	// 	context.SetParamNames("id")
+	// 	context.SetParamValues("1")
+	// 	//yoga
+	// 	transactionController := transaction.NewTransactionController(mockFalseTransaction{})
+	// 	if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(transactionController.GetOne)(context); err != nil {
+	// 		log.Fatal(err)
+	// 		return
+	// 	}
+	// 	var responses common.ResponseSuccess
+
+	// 	json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+	// 	assert.Equal(t, "Not Found", responses.Message)
+	// })
 }
 
 //======================
@@ -816,6 +1094,11 @@ func (m mockTransaction) GetAllForUser(userID int) ([]models.Transaction, error)
 		{
 			UserID:    1,
 			PartnerID: 2,
+			Products: []models.Product{
+				{
+					Title: "bakso",
+				},
+			},
 		},
 	}, nil
 }
@@ -824,6 +1107,11 @@ func (m mockTransaction) GetOneForUser(trxID, userID int) (models.Transaction, e
 	return models.Transaction{
 		UserID:    1,
 		PartnerID: 2,
+		Products: []models.Product{
+			{
+				Title: "bakso",
+			},
+		},
 	}, nil
 }
 
@@ -831,6 +1119,11 @@ func (m mockTransaction) GetOneForPartner(trxID, partnerID int) (models.Transact
 	return models.Transaction{
 		UserID:    1,
 		PartnerID: 2,
+		Products: []models.Product{
+			{
+				Title: "bakso",
+			},
+		},
 	}, nil
 }
 
@@ -885,10 +1178,7 @@ func (m mockFalseTransaction) Send(trxID, partnerID int) (models.Transaction, er
 }
 
 func (m mockFalseTransaction) Confirm(trxID, userID int) (models.Transaction, error) {
-	return models.Transaction{
-		UserID:    1,
-		PartnerID: 2,
-	}, errors.New("FAILED")
+	return models.Transaction{}, errors.New("FAILED")
 }
 
 func (m mockFalseTransaction) GetAllForPartner(partnerID int) ([]models.Transaction, error) {
@@ -906,14 +1196,14 @@ func (m mockFalseTransaction) GetAllForUser(userID int) ([]models.Transaction, e
 			UserID:    1,
 			PartnerID: 2,
 		},
-	}, nil
+	}, errors.New("FAILED")
 }
 
 func (m mockFalseTransaction) GetOneForUser(trxID, userID int) (models.Transaction, error) {
 	return models.Transaction{
 		UserID:    1,
 		PartnerID: 2,
-	}, nil
+	}, errors.New("FAILED")
 }
 
 func (m mockFalseTransaction) GetOneForPartner(trxID, partnerID int) (models.Transaction, error) {

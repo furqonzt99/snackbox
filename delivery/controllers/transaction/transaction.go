@@ -262,10 +262,7 @@ func (tc TransactionController) GetOne(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	data := models.Transaction{}
 
@@ -318,9 +315,7 @@ func (tc TransactionController) GetOne(c echo.Context) error {
 func (tc TransactionController) Shipping(c echo.Context) error {
 	var shippingRequest ShippingCostRequest
 
-	if err := c.Bind(&shippingRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+	c.Bind(&shippingRequest)
 
 	if err := c.Validate(&shippingRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
