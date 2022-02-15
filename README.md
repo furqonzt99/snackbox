@@ -14,6 +14,7 @@ Snackbox can make it easier for customers to order snacks and rice boxes and do 
 ## Features
 
 - JWT Authentication
+- Multi Role Middleware (Admin, Partner, User)
 - Search Product By Nearest Partner Location
 - Payment Gateway Integration - Invoice & Disbursment (Xendit)
 - AWS S3 Integration
