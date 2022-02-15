@@ -20,6 +20,7 @@ import (
 	"github.com/furqonzt99/snackbox/delivery/controllers/user"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/go-playground/validator/v10"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/stretchr/testify/assert"
@@ -481,13 +482,24 @@ func TestUpload(t *testing.T) {
 
 	t.Run("test upload", func(t *testing.T) {
 
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
 		//////////////////////////////////
 		body := &bytes.Buffer{}
 
 		writer := multipart.NewWriter(body)
-		fw, _ := writer.CreateFormFile("legal_document", "test.pdf")
+		fw, _ := writer.CreateFormFile("legal_document", "file.pdf") // add file to partner folder
 
-		file, _ := os.Open("test.pdf")
+		file, _ := os.Open("file.pdf")
 
 		_, _ = io.Copy(fw, file)
 
@@ -515,7 +527,7 @@ func TestUpload(t *testing.T) {
 		var responses common.ResponseSuccess
 
 		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
-		assert.Equal(t, "", responses.Message)
+		assert.Equal(t, "Successful Operation", responses.Message)
 	})
 
 }

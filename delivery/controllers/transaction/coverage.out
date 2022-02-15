@@ -61,10 +61,8 @@ github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:2
 github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:271.8,273.3 1 1
 github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:275.16,277.3 1 1
 github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:282.37,289.3 1 1
-github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:315.64,318.49 2 0
-github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:322.2,322.53 1 0
-github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:326.2,327.16 2 0
-github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:331.2,338.64 3 0
-github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:318.49,320.3 1 0
-github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:322.53,324.3 1 0
-github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:327.16,329.3 1 0
+github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:315.64,320.53 3 1
+github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:324.2,325.16 2 1
+github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:329.2,336.64 3 1
+github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:320.53,322.3 1 0
+github.com/furqonzt99/snackbox/delivery/controllers/transaction/transaction.go:325.16,327.3 1 0
