@@ -740,6 +740,10 @@ func (m mockTransaction) Callback(invId string, transaction models.Transaction, 
 	}, nil
 }
 
+func (m mockTransaction) GetDistance(partnerID int, latitude, longtitude float64) (float64, error) {
+	return 1, nil
+}
+
 //======================
 //MOCK FALSE TRANSACTION REPOSITORY
 //======================
@@ -823,10 +827,14 @@ func (m mockFalseTransaction) Callback(invId string, transaction models.Transact
 		UserID:    1,
 		PartnerID: 2,
 	}, errors.New("FAILED")
+
+}
+func (m mockFalseTransaction) GetDistance(partnerID int, latitude, longtitude float64) (float64, error) {
+	return 1, errors.New("FAILED")
 }
 
 //======================
-//MOCK FALSE TRANSACTION REPOSITORY
+//MOCK FALSE TRANSACTION REPOSITORY2
 //======================
 type mockFalseTransaction2 struct{}
 
@@ -908,6 +916,10 @@ func (m mockFalseTransaction2) Callback(invId string, transaction models.Transac
 		UserID:    1,
 		PartnerID: 2,
 	}, nil
+}
+
+func (m mockFalseTransaction2) GetDistance(partnerID int, latitude, longtitude float64) (float64, error) {
+	return 1, errors.New("FAILED")
 }
 
 //======================
