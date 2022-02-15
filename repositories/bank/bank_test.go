@@ -1,61 +1,47 @@
 package bank_test
 
 import (
+	"log"
+	"os"
 	"testing"
 
-	config "github.com/furqonzt99/snackbox/configs"
-	"github.com/furqonzt99/snackbox/models"
-	"github.com/furqonzt99/snackbox/repositories/user"
-	"github.com/furqonzt99/snackbox/utils"
+	"github.com/furqonzt99/snackbox/repositories/bank"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
+	"github.com/xendit/xendit-go"
 	"gorm.io/gorm"
 )
 
-var configTest *config.AppConfig
-var db *gorm.DB
-var userRepo *user.UserRepository
-
 func TestBank(t *testing.T) {
-	configTest = config.GetConfig()
-	db = utils.InitDB(configTest)
+	var db *gorm.DB
+	bankRepo := bank.NewBankRepository(db)
 
-	db.Migrator().DropTable(&models.User{})
-	db.Migrator().DropTable(&models.Partner{})
-	db.Migrator().DropTable(&models.Product{})
-	db.Migrator().DropTable(&models.Rating{})
-	db.Migrator().DropTable(&models.Transaction{})
-	db.Migrator().DropTable(&models.DetailTransaction{})
-	db.Migrator().DropTable(&models.Cashout{})
+	err := godotenv.Load()
 
-	userRepo = user.NewUserRepo(db)
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	xendit.Opt.SecretKey = os.Getenv("XENDIT_SECRET_KEY")
 
-	db.AutoMigrate(&models.User{})
-	db.AutoMigrate(&models.Partner{})
-	db.AutoMigrate(&models.Product{})
-	db.AutoMigrate(&models.Rating{})
-	db.AutoMigrate(&models.Transaction{})
-	db.AutoMigrate(&models.DetailTransaction{})
-	db.AutoMigrate(&models.Cashout{})
+	t.Run("GetAvailableBanks", func(t *testing.T) {
 
-	t.Run("Register User", func(t *testing.T) {
-		var mockUser models.User
-		mockUser.Email = "test@gmail.com"
-		mockUser.Password = "test123"
-		mockUser.Name = "tester"
-
-		_, err := userRepo.Register(mockUser)
-		assert.Nil(t, err)
-		// assert.Equal(t, mockUser.Name, res.Name)
-		// assert.Equal(t, 1, int(res.ID))
+		res, _ := bankRepo.GetAvailableBanks()
+		assert.Equal(t, "Bank Central Asia (BCA)", res[0].Name)
 	})
+}
 
-	t.Run("Error Register User Duplicate Email", func(t *testing.T) {
-		var mockUser models.User
-		mockUser.Email = "test@gmail.com"
-		mockUser.Password = "test123"
-		mockUser.Name = "tester"
+func TestBankFailed(t *testing.T) {
+	var bankRepositoryFail *bank.BankRepository
+	err := godotenv.Load("./failedTest/.env")
 
-		_, err := userRepo.Register(mockUser)
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	xendit.Opt.SecretKey = os.Getenv("XENDIT_SECRET_KEY_FAILED")
+
+	t.Run("GetAvailableBanksFialed", func(t *testing.T) {
+
+		_, err := bankRepositoryFail.GetAvailableBanks()
 		assert.NotNil(t, err)
 	})
 }
