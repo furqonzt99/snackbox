@@ -220,8 +220,10 @@ func (uc UserController) Upload(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "file type must an image"))
 	}
 
+	prefix := "profiles/"
+
 	fileID := strings.ReplaceAll(uuid.New().String(), "-", "")
-	file.Filename = fmt.Sprint(fileID, ".", kind.Extension)
+	file.Filename = fmt.Sprint(prefix, fileID, ".", kind.Extension)
 
 	if userDB.Photo != "" {
 		if err := helper.GetObjectS3(userDB.Photo); err == nil {
