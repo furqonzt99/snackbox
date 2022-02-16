@@ -511,7 +511,6 @@ func TestUpload(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
 		res := httptest.NewRecorder()
 
-		// req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 
@@ -530,6 +529,299 @@ func TestUpload(t *testing.T) {
 		assert.Equal(t, "Successful Operation", responses.Message)
 	})
 
+	t.Run("test upload err find user", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("legal_document", "file.pdf") // add file to partner folder
+
+		file, _ := os.Open("file.pdf")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/partners/submission/upload")
+
+		partnerController := partner.NewPartnerController(mockFalsePartnerRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(partnerController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Not Found", responses.Message)
+	})
+
+	t.Run("test upload err partner.Status = actice or pending", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("legal_document", "file.pdf") // add file to partner folder
+
+		file, _ := os.Open("file.pdf")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/partners/submission/upload")
+
+		partnerController := partner.NewPartnerController(mockPartnerRepository4{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(partnerController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Bad Request", responses.Message)
+	})
+
+	t.Run("test upload bad reqeust formFile", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("legal_document1", "file.pdf") // add file to partner folder
+
+		file, _ := os.Open("file.pdf")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/partners/submission/upload")
+
+		partnerController := partner.NewPartnerController(mockPartnerRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(partnerController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "http: no such file", responses.Message)
+	})
+
+	t.Run("test upload err extension", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("legal_document", "file.pdf") // add file to partner folder
+
+		file, _ := os.Open("file1.pdf")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/partners/submission/upload")
+
+		partnerController := partner.NewPartnerController(mockPartnerRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(partnerController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "extension must .pdf", responses.Message)
+	})
+
+	t.Run("test upload err upload object s3", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION_FAILED")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("legal_document", "file.pdf") // add file to partner folder
+
+		file, _ := os.Open("file.pdf")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/partners/submission/upload")
+
+		partnerController := partner.NewPartnerController(mockPartnerRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(partnerController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "MissingRegion: could not find region configuration", responses.Message)
+	})
+
+	t.Run("test upload", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("legal_document", "file.pdf") // add file to partner folder
+
+		file, _ := os.Open("file.pdf")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/partners/submission/upload")
+
+		partnerController := partner.NewPartnerController(mockPartnerRepository5{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(partnerController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Bad Request", responses.Message)
+	})
 }
 
 func TestReport(t *testing.T) {
@@ -624,6 +916,158 @@ func TestReport(t *testing.T) {
 
 	})
 
+}
+
+func TestGetPartnerData(t *testing.T) {
+	t.Run("login", func(t *testing.T) {
+
+		e := echo.New()
+		e.Validator = &user.UserValidator{Validator: validator.New()}
+
+		requestBody, _ := json.Marshal(map[string]string{
+			"email":    "test@gmail.com",
+			"password": "test1234",
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		context := e.NewContext(req, res)
+		context.SetPath("/login")
+
+		userController := user.NewUsersControllers(mockUserRepository{})
+		userController.LoginController()(context)
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+		JwtToken = response.Data.(string)
+
+	})
+
+	t.Run("Get Partner Data success", func(t *testing.T) {
+
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/partners")
+
+		userController := partner.NewPartnerController(mockPartnerRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.GetPartnerData())(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		responses := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Successful Operation", responses.Message)
+
+	})
+	t.Run("Get Partner Data failed", func(t *testing.T) {
+
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/partners")
+
+		userController := partner.NewPartnerController(mockFalsePartnerRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.GetPartnerData())(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		responses := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Bad Request", responses.Message)
+
+	})
+}
+
+func TestGetPartnerRating(t *testing.T) {
+	// t.Run("login", func(t *testing.T) {
+
+	// 	e := echo.New()
+	// 	e.Validator = &user.UserValidator{Validator: validator.New()}
+
+	// 	requestBody, _ := json.Marshal(map[string]string{
+	// 		"email":    "test@gmail.com",
+	// 		"password": "test1234",
+	// 	})
+
+	// 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
+	// 	res := httptest.NewRecorder()
+
+	// 	req.Header.Set("Content-Type", "application/json")
+	// 	context := e.NewContext(req, res)
+	// 	context.SetPath("/login")
+
+	// 	userController := user.NewUsersControllers(mockUserRepository{})
+	// 	userController.LoginController()(context)
+
+	// 	response := common.ResponseSuccess{}
+	// 	json.Unmarshal([]byte(res.Body.Bytes()), &response)
+	// 	JwtToken = response.Data.(string)
+
+	// })
+
+	t.Run("Get Partner rating success", func(t *testing.T) {
+
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := httptest.NewRecorder()
+
+		// req.Header.Set("Content-Type", "application/json")
+		// req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/partners")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		userController := partner.NewPartnerController(mockPartnerRepository{})
+		userController.GetPartnerRating()(context)
+
+		responses := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Successful Operation", responses.Message)
+
+	})
+	t.Run("Get Partner Data failed", func(t *testing.T) {
+
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := httptest.NewRecorder()
+
+		// req.Header.Set("Content-Type", "application/json")
+		// req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/partners")
+		context.SetParamNames("id")
+		context.SetParamValues("a")
+
+		userController := partner.NewPartnerController(mockPartnerRepository{})
+		userController.GetPartnerRating()(context)
+
+		responses := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Bad Request", responses.Message)
+
+	})
 }
 
 //======================
@@ -1031,6 +1475,286 @@ func (m mockPartnerRepository3) Report(partnerId int) ([]models.Transaction, err
 				},
 				{
 					Title: "rendang2",
+				},
+			},
+		},
+	}, nil
+}
+
+//======================
+//MOCK PARTNER REPOSITORY4
+//======================
+type mockPartnerRepository4 struct{}
+
+func (m mockPartnerRepository4) ApplyPartner(partner models.Partner) (models.Partner, error) {
+	return models.Partner{
+		Model:         gorm.Model{},
+		UserID:        1,
+		BussinessName: "testPartner",
+		Description:   "testPartner",
+		Latitude:      100,
+		Longtitude:    100,
+		Address:       "testPartner",
+		City:          "testPartner",
+		Status:        "reject",
+	}, nil
+}
+
+func (m mockPartnerRepository4) GetAllPartner() ([]models.Partner, error) {
+	return []models.Partner{
+		{
+			BussinessName: "testPartner",
+			Description:   "testPartner",
+			Latitude:      100,
+			Longtitude:    100,
+			Address:       "testPartner",
+			City:          "testPartner",
+			LegalDocument: "testPartner.pdf",
+			Status:        "DRAFT",
+		},
+	}, nil
+}
+
+func (m mockPartnerRepository4) GetPartner(partnerId int) (models.Partner, error) {
+	return models.Partner{
+		BussinessName: "testPartner",
+		Description:   "testPartner",
+		Latitude:      100,
+		Longtitude:    100,
+		Address:       "testPartner",
+		City:          "testPartner",
+		LegalDocument: "testPartner.pdf",
+		Status:        "DRAFT",
+	}, nil
+}
+
+func (m mockPartnerRepository4) FindPartnerId(partnerId int) (models.Partner, error) {
+	return models.Partner{
+		BussinessName: "testPartner",
+		Description:   "testPartner",
+		Latitude:      100,
+		Longtitude:    100,
+		Address:       "testPartner",
+		City:          "testPartner",
+		LegalDocument: "testPartner.pdf",
+		Status:        "active",
+	}, nil
+}
+
+func (m mockPartnerRepository4) FindUserId(userId int) (models.Partner, error) {
+	return models.Partner{
+		BussinessName: "testPartner",
+		Description:   "testPartner",
+		Latitude:      100,
+		Longtitude:    100,
+		Address:       "testPartner",
+		City:          "testPartner",
+		LegalDocument: "testPartner.pdf",
+		Status:        "pending",
+	}, nil
+}
+
+func (m mockPartnerRepository4) AcceptPartner(partner models.Partner) error {
+	return nil
+}
+
+func (m mockPartnerRepository4) RejectPartner(partner models.Partner) error {
+	return nil
+}
+
+func (m mockPartnerRepository4) GetAllPartnerProduct() ([]models.Partner, error) {
+	return []models.Partner{
+		{
+			BussinessName: "testPartner",
+			Description:   "testPartner",
+			Latitude:      100,
+			Longtitude:    100,
+			Address:       "testPartner",
+			City:          "testPartner",
+			LegalDocument: "testPartner.pdf",
+			Status:        "DRAFT",
+		},
+	}, nil
+}
+
+func (m mockPartnerRepository4) UploadDocument(partnerID int, partner models.Partner) (models.Partner, error) {
+	return models.Partner{
+		BussinessName: "testPartner",
+		Description:   "testPartner",
+		Latitude:      100,
+		Longtitude:    100,
+		Address:       "testPartner",
+		City:          "testPartner",
+		LegalDocument: "testPartner.pdf",
+		Status:        "DRAFT",
+	}, nil
+}
+
+func (m mockPartnerRepository4) Report(partnerId int) ([]models.Transaction, error) {
+
+	return []models.Transaction{
+		{
+			UserID:         1,
+			PartnerID:      1,
+			Buffet:         false,
+			Quantity:       1,
+			DateTime:       time.Time{},
+			Latitude:       1,
+			Longtitude:     1,
+			Distance:       1,
+			TotalPrice:     1000,
+			InvoiceID:      "1111",
+			PaymentUrl:     "localhost",
+			PaymentChannel: "BNI",
+			PaymentMethod:  "BANK TRANSFER",
+			PaidAt:         time.Time{},
+			Status:         "PAID",
+			Products: []models.Product{
+				{
+					Title: "rendang",
+				},
+				{
+					Title: "rendang2",
+				},
+			},
+		},
+	}, nil
+}
+
+//======================
+//MOCK PARTNER REPOSITORY 5
+//======================
+type mockPartnerRepository5 struct{}
+
+func (m mockPartnerRepository5) ApplyPartner(partner models.Partner) (models.Partner, error) {
+	return models.Partner{
+		Model:         gorm.Model{},
+		UserID:        1,
+		BussinessName: "testPartner",
+		Description:   "testPartner",
+		Latitude:      100,
+		Longtitude:    100,
+		Address:       "testPartner",
+		City:          "testPartner",
+		Status:        "DRAFT",
+	}, nil
+}
+
+func (m mockPartnerRepository5) GetAllPartner() ([]models.Partner, error) {
+	return []models.Partner{
+		{
+			UserID:        1,
+			BussinessName: "testPartner",
+			Description:   "testPartner",
+			Latitude:      100,
+			Longtitude:    100,
+			Address:       "testPartner",
+			City:          "testPartner",
+			LegalDocument: "testPartner.pdf",
+			Status:        "DRAFT",
+		},
+	}, nil
+}
+
+func (m mockPartnerRepository5) GetPartner(partnerId int) (models.Partner, error) {
+	return models.Partner{
+		BussinessName: "testPartner",
+		Description:   "testPartner",
+		Latitude:      100,
+		Longtitude:    100,
+		Address:       "testPartner",
+		City:          "testPartner",
+		LegalDocument: "testPartner.pdf",
+		Status:        "DRAFT",
+	}, nil
+}
+
+func (m mockPartnerRepository5) FindPartnerId(partnerId int) (models.Partner, error) {
+	return models.Partner{
+		BussinessName: "testPartner",
+		Description:   "testPartner",
+		Latitude:      100,
+		Longtitude:    100,
+		Address:       "testPartner",
+		City:          "testPartner",
+		LegalDocument: "testPartner.pdf",
+		Status:        "DRAFT",
+	}, nil
+}
+
+func (m mockPartnerRepository5) FindUserId(userId int) (models.Partner, error) {
+	return models.Partner{
+		BussinessName: "testPartner",
+		Description:   "testPartner",
+		Latitude:      100,
+		Longtitude:    100,
+		Address:       "testPartner",
+		City:          "testPartner",
+		LegalDocument: "testPartner.pdf",
+		Status:        "DRAFT",
+	}, nil
+}
+
+func (m mockPartnerRepository5) AcceptPartner(partner models.Partner) error {
+	return nil
+}
+
+func (m mockPartnerRepository5) RejectPartner(partner models.Partner) error {
+	return nil
+}
+
+func (m mockPartnerRepository5) GetAllPartnerProduct() ([]models.Partner, error) {
+	return []models.Partner{
+		{
+			BussinessName: "testPartner",
+			Description:   "testPartner",
+			Latitude:      100,
+			Longtitude:    100,
+			Address:       "testPartner",
+			City:          "testPartner",
+			LegalDocument: "testPartner.pdf",
+			Status:        "DRAFT",
+		},
+	}, nil
+}
+
+func (m mockPartnerRepository5) UploadDocument(partnerID int, partner models.Partner) (models.Partner, error) {
+	return models.Partner{
+		BussinessName: "testPartner",
+		Description:   "testPartner",
+		Latitude:      100,
+		Longtitude:    100,
+		Address:       "testPartner",
+		City:          "testPartner",
+		LegalDocument: "testPartner.pdf",
+		Status:        "DRAFT",
+	}, errors.New("FAILED")
+}
+
+func (m mockPartnerRepository5) Report(partnerId int) ([]models.Transaction, error) {
+	return []models.Transaction{
+		{
+			UserID:         1,
+			PartnerID:      1,
+			Buffet:         false,
+			Quantity:       1,
+			DateTime:       time.Time{},
+			Latitude:       1,
+			Longtitude:     1,
+			Distance:       1,
+			TotalPrice:     1000,
+			InvoiceID:      "1111",
+			PaymentUrl:     "localhost",
+			PaymentChannel: "BNI",
+			PaymentMethod:  "BANK TRANSFER",
+			PaidAt:         time.Time{},
+			Status:         "PAID",
+			Products: []models.Product{
+				{
+
+					Title: "udang",
+					Type:  "snack",
+					Price: 1000,
 				},
 			},
 		},

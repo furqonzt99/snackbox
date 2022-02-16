@@ -306,14 +306,9 @@ func (p PartnerController) GetPartnerRating() echo.HandlerFunc {
 func (pc PartnerController) Upload(c echo.Context) error {
 	var requestUpload UploadDocumentRequest
 
-	if err := c.Bind(&requestUpload); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+	c.Bind(&requestUpload)
 
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	partner, err := pc.Repo.FindUserId(user.UserID)
 	if err != nil {
@@ -369,7 +364,7 @@ func (pc PartnerController) Upload(c echo.Context) error {
 
 	_, err = pc.Repo.UploadDocument(int(partner.ID), partnerData)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
 	return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
@@ -469,11 +464,11 @@ func (p PartnerController) Report() echo.HandlerFunc {
 		}
 
 		reportLink := fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, filename)
-		
+
 		responses := ReportResponse{
 			ReportLink: reportLink,
 		}
-		
+
 		return c.JSON(http.StatusOK, common.SuccessResponse(responses))
 	}
 
