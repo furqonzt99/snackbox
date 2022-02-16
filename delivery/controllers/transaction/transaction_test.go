@@ -194,7 +194,7 @@ func TestTransaction(t *testing.T) {
 
 		bodyReq, _ := json.Marshal(transaction.TransactionRequest{
 			Quantity:   1,
-			Date:       "2022-02-19",
+			Date:       "2022-02-27",
 			Time:       "09:00:00",
 			Latitude:   100,
 			Longtitude: 100,

@@ -9,7 +9,7 @@ import (
 )
 
 type PostRatingRequest struct {
-	Rating int `json:"rating" validate:"required,max=5,min=1"`
+	Rating  int    `json:"rating" validate:"required,max=5,min=1"`
 	Comment string `json:"comment"`
 }
 
@@ -20,7 +20,7 @@ type RatingValidator struct {
 func (tv *RatingValidator) Validate(i interface{}) error {
 	if err := tv.Validator.Struct(i); err != nil {
 		// Optionally, you could return the error to give each route more control over the status code
-		return echo.NewHTTPError(http.StatusBadRequest, common.NewBadRequestResponse())
+		return echo.NewHTTPError(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 	return nil
 }
