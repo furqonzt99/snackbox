@@ -40,7 +40,7 @@ func (rr *RatingRepository) Create(rating models.Rating) (models.Rating, error) 
 
 	var r models.Rating
 
-	rr.db.Preload("User").First(&r, "user_id = ? AND transaction_id = ?", &rating.UserID, &rating.TransactionID)
+	rr.db.Preload("User").First(&r, "user_id = ? AND transaction_id = ?", rating.UserID, rating.TransactionID)
 
 	return rating, nil
 }
@@ -54,7 +54,7 @@ func (rr *RatingRepository) Update(rating models.Rating) (models.Rating, error) 
 
 	rr.db.Model(&r).Updates(rating)
 
-	rr.db.Preload("User").First(&r, "user_id = ? AND transaction_id = ?", &rating.UserID, &rating.TransactionID)
+	rr.db.Preload("User").First(&r, "user_id = ? AND transaction_id = ?", rating.UserID, rating.TransactionID)
 
 	return r, nil
 }
