@@ -1,6 +1,9 @@
 package transaction
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/furqonzt99/snackbox/helper"
 	"github.com/furqonzt99/snackbox/models"
 	"gorm.io/gorm"
@@ -296,5 +299,9 @@ func (tr *TransactionRepository) GetDistance(partnerID int, latitude, longtitude
 		return 0, err
 	}
 
-	return distance, nil
+	s := fmt.Sprintf("%.2f", distance)
+
+	formatDistance, _ := strconv.ParseFloat(s, 64)
+
+	return formatDistance, nil
 }
