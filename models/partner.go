@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Partner struct {
 	gorm.Model
-	UserID        uint `gorm:"unique"`
+	UserID        uint `gorm:"primaryKey"`
 	BussinessName string
 	Description   string
 	Latitude      float64
@@ -14,4 +14,5 @@ type Partner struct {
 	LegalDocument string
 	Status        string `gorm:"default:DRAFT"`
 	Products      []Product
+	Ratings		  []Rating
 }

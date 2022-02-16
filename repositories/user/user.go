@@ -31,7 +31,7 @@ func (ur *UserRepository) Register(newUser models.User) (models.User, error) {
 
 func (ur *UserRepository) Login(email string) (models.User, error) {
 	var user models.User
-	var err = ur.db.Preload("Partner").First(&user, "email = ?", email).Error
+	err := ur.db.Preload("Partner").First(&user, "email = ?", email).Error
 	if err != nil {
 		return user, err
 	}

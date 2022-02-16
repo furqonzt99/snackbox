@@ -43,12 +43,14 @@ type UserProfileResponse struct {
 	ID      uint    `json:"id"`
 	Email   string  `json:"email"`
 	Name    string  `json:"name"`
+	Photo   string  `json:"photo"`
 	Balance float64 `json:"balance"`
 }
 type UserProfileResponseWithPartner struct {
-	ID      uint    `json:"id"`
-	Email   string  `json:"email"`
-	Name    string  `json:"name"`
-	Balance float64 `json:"balance"`
-	Partner partner.GetPartnerProfileResponse
+	ID      uint                              `json:"id"`
+	Email   string                            `json:"email"`
+	Name    string                            `json:"name"`
+	Photo   string                            `json:"photo"`
+	Balance float64                           `json:"balance"`
+	Partner partner.GetPartnerProfileResponse `json:"partner"`
 }

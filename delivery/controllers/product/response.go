@@ -20,6 +20,7 @@ type DeleteUserResponseFormat struct {
 
 type ProductResponse struct {
 	Title       string  `json:"title"`
+	Image		string	`json:"image"`
 	Type        string  `json:"type"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
@@ -29,6 +30,7 @@ type GetProductWithPartnerResponse struct {
 	Id          uint    `json:"id"`
 	PartnerID   uint    `json:"partner_id"`
 	Title       string  `json:"title"`
+	Image		string	`json:"image"`
 	Type        string  `json:"type"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`

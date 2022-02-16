@@ -101,7 +101,7 @@ func (cr *CashoutRepository) CallbackFailed(extID string, cashout models.Cashout
 		if err = tx.First(&user, cashout.UserID).Error; err != nil {
 			return err
 		}
-		
+
 		newBalance := user.Balance + cashout.Amount
 
 		if err = tx.Model(&user).Update("balance", newBalance).Error; err != nil {

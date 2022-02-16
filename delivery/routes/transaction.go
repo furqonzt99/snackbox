@@ -18,4 +18,5 @@ func RegisterTransactionPath(e *echo.Echo, TransactionController *transaction.Tr
 	e.PUT("/transactions/:id/confirm", TransactionController.Confirm, middleware.JWT([]byte(constants.JWT_SECRET_KEY)), middlewares.CheckUserRole)
 	e.GET("/transactions", TransactionController.GetAll, middleware.JWT([]byte(constants.JWT_SECRET_KEY)))
 	e.GET("/transactions/:id", TransactionController.GetOne, middleware.JWT([]byte(constants.JWT_SECRET_KEY)))
+	e.POST("/transactions/shipping", TransactionController.Shipping, middleware.JWT([]byte(constants.JWT_SECRET_KEY)))
 }

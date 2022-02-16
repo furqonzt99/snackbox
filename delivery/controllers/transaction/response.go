@@ -5,6 +5,7 @@ import "github.com/furqonzt99/snackbox/delivery/controllers/product"
 type TransactionResponse struct {
 	ID int `json:"id"`
 	UserID int `json:"user_id"`
+	UserName string `json:"username"`
 	PartnerID int `json:"partner_id"`
 	InvoiceID string `json:"invoice_id"`
 	Buffet bool `json:"buffet"`
@@ -20,4 +21,9 @@ type TransactionResponse struct {
 	PaidAt string `json:"paid_at"`
 	Status string `json:"status"`
 	Products []product.ProductResponse `json:"products"`
+}
+
+type ShippingCostResponse struct {
+	Distance float64 `json:"distance"`
+	Cost float64 `json:"cost"`
 }

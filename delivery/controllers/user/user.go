@@ -1,14 +1,19 @@
 package user
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/furqonzt99/snackbox/constants"
 	"github.com/furqonzt99/snackbox/delivery/common"
 	"github.com/furqonzt99/snackbox/delivery/controllers/partner"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
 	"github.com/furqonzt99/snackbox/helper"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/furqonzt99/snackbox/repositories/user"
+	"github.com/google/uuid"
+	"github.com/h2non/filetype"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -68,7 +73,7 @@ func (uscon UserController) LoginController() echo.HandlerFunc {
 
 		user, err := uscon.Repo.Login(loginUser.Email)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusNotFound, common.ErrorResponse(404, "User not found"))
+			return c.JSON(http.StatusNotFound, common.ErrorResponse(404, "User not found"))
 		}
 
 		hash, err := helper.Checkpwd(user.Password, loginUser.Password)
@@ -98,11 +103,17 @@ func (uscon UserController) GetUserController() echo.HandlerFunc {
 
 		user, _ := uscon.Repo.Get(userJwt.UserID)
 
+		var userProfile string
+		if user.Photo != "" {
+			userProfile = fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, user.Photo)
+		}
+
 		if user.Partner.ID == 0 {
 			data := UserProfileResponse{
 				ID:      user.ID,
-				Email:   user.Email,
 				Name:    user.Name,
+				Photo:   userProfile,
+				Email:   user.Email,
 				Balance: user.Balance,
 			}
 			return c.JSON(http.StatusOK, common.SuccessResponse(data))
@@ -111,6 +122,7 @@ func (uscon UserController) GetUserController() echo.HandlerFunc {
 		data := UserProfileResponseWithPartner{
 			ID:      user.ID,
 			Name:    user.Name,
+			Photo:   userProfile,
 			Email:   user.Email,
 			Balance: user.Balance,
 			Partner: partner.GetPartnerProfileResponse{
@@ -169,4 +181,63 @@ func (uscon UserController) DeleteUserController() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
 	}
+}
+
+func (uc UserController) Upload(c echo.Context) error {
+	var requestUpload UserPhotoRequest
+
+	c.Bind(&requestUpload)
+
+	user, _ := middlewares.ExtractTokenUser(c)
+
+	userDB, err := uc.Repo.Get(user.UserID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, common.ErrorResponse(http.StatusNotFound, err.Error()))
+	}
+
+	file, err := c.FormFile("photo")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	src, err := file.Open()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+	defer src.Close()
+
+	head := make([]byte, 261)
+	src.Read(head)
+
+	kind, _ := filetype.Match(head)
+
+	if !filetype.IsImage(head) {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "file type must an image"))
+	}
+
+	prefix := "profiles/"
+
+	fileID := strings.ReplaceAll(uuid.New().String(), "-", "")
+	file.Filename = fmt.Sprint(prefix, fileID, ".", kind.Extension)
+
+	if userDB.Photo != "" {
+		if err := helper.GetObjectS3(userDB.Photo); err == nil {
+			_ = helper.DeleteObjectS3(userDB.Photo)
+		}
+	}
+
+	if err := helper.UploadObjectS3(file.Filename, src); err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	userProfile := models.User{
+		Photo: file.Filename,
+	}
+
+	_, err = uc.Repo.Update(userProfile, int(userDB.ID))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
 }
