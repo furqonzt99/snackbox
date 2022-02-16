@@ -73,6 +73,8 @@ go run .
 
 ## Unit Test
 
+![Unit Test](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/test-result.png)
+
 ## Tech Stack
 
 - [Github](https://github.com/) - Versioning Platform
