@@ -1,11 +1,11 @@
 <div align="center">
   <a href="https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-logo.png">
-    <img src="https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-logo.png" alt="Logo" height="150">
+    <img src="https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-logo.png" alt="Logo" height="100">
   </a>
 </div>
 <div>
   <p align="center">
-    </br>Catering Ecommerce Platform</br>
+    </br>Catering Ecommerce Platform</br></br>
     <a href="https://app.swaggerhub.com/apis-docs/furqonzt99/snackbox/1">API Docs</a>
     ·
     <a href="https://whimsical.com/snackbox-UcYKhew5MBhFzJWaCXQbAb">Wireflow</a>
