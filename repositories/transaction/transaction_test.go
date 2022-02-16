@@ -722,3 +722,89 @@ func TestGetAllForUser(t *testing.T) {
 		assert.Equal(t, []models.Transaction([]models.Transaction(nil)), res)
 	})
 }
+
+func TestGetOneForUser(t *testing.T) {
+	configTest = config.GetConfig()
+	db = utils.InitDB(configTest)
+
+	db.Migrator().DropTable(&models.User{})
+	db.Migrator().DropTable(&models.Partner{})
+	db.Migrator().DropTable(&models.Product{})
+	db.Migrator().DropTable(&models.Rating{})
+	db.Migrator().DropTable(&models.Transaction{})
+	db.Migrator().DropTable(&models.DetailTransaction{})
+	db.Migrator().DropTable(&models.Cashout{})
+
+	userRepo = user.NewUserRepo(db)
+	partnerRepo = partner.NewPartnerRepo(db)
+	productRepo = product.NewProductRepo(db)
+	transactionRepo = transaction.NewTransactionRepository(db)
+
+	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Partner{})
+	db.AutoMigrate(&models.Product{})
+	db.AutoMigrate(&models.Rating{})
+	db.AutoMigrate(&models.Transaction{})
+	db.AutoMigrate(&models.DetailTransaction{})
+	db.AutoMigrate(&models.Cashout{})
+
+	//CREATE USER
+	dummyUser := models.User{
+
+		Email:    "test@gmail.com",
+		Password: "test1234",
+		Role:     "partner",
+	}
+	userRepo.Register(dummyUser)
+
+	//CREATE USER2
+	dummyUser2 := models.User{
+
+		Email:    "test2@gmail.com",
+		Password: "test1234",
+		Role:     "user",
+	}
+	userRepo.Register(dummyUser2)
+
+	//CREATE PARTNER
+	dummyPartner := models.Partner{
+		UserID:        1,
+		BussinessName: "partner1",
+		Status:        "active",
+	}
+	partnerRepo.ApplyPartner(dummyPartner)
+
+	//CREATE PRODUCT
+	dummyProduct := models.Product{
+		PartnerID:   1,
+		Title:       "rendang",
+		Type:        "ricebox",
+		Description: "enak",
+		Price:       1000,
+	}
+	productRepo.AddProduct(dummyProduct)
+
+	//CREATE TRANSACTION
+	dummyTransaction := models.Transaction{
+		PartnerID:  1,
+		UserID:     2,
+		Buffet:     false,
+		Quantity:   1,
+		Latitude:   100,
+		Longtitude: 100,
+		Distance:   1,
+		Status:     "PAID",
+	}
+	db.Create(&dummyTransaction)
+
+	// t.Run("test GetAllForUser", func(t *testing.T) {
+
+	// 	res, _ := transactionRepo.GetOneForUser(2)
+	// 	assert.Equal(t, "PAID", res[0].Status)
+	// })
+	// t.Run("test GetAllForUser", func(t *testing.T) {
+	// 	db.Migrator().DropTable(&models.Transaction{})
+	// 	res, _ := transactionRepo.GetOneForUser(1)
+	// 	assert.Equal(t, []models.Transaction([]models.Transaction(nil)), res)
+	// })
+}
