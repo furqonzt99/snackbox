@@ -1,11 +1,23 @@
-![Logo](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-logo.png)
+<div align="center">
+  <a href="https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-logo.png">
+    <img src="https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-logo.png" alt="Logo" height="150">
+  </a>
+</div>
+<div>
+  <p align="center">
+    </br>Catering Ecommerce Platform</br>
+    <a href="https://app.swaggerhub.com/apis-docs/furqonzt99/snackbox/1">API Docs</a>
+    ·
+    <a href="https://whimsical.com/snackbox-UcYKhew5MBhFzJWaCXQbAb">Wireflow</a>
+  </p>
+</div>
+
+# Snackbox
 
 [![Go.Dev reference](https://img.shields.io/badge/echo-reference-blue?logo=go&logoColor=blue)](https://github.com/labstack/echo)
 [![Go.Dev reference](https://img.shields.io/badge/gorm-reference-blue?logo=go&logoColor=blue)](https://pkg.go.dev/gorm.io/gorm?tab=doc)
 [![Go.Dev reference](https://img.shields.io/badge/aws--s3-reference-orange)](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/go/example_code/s3)
 [![Go.Dev reference](https://img.shields.io/badge/maroto-reference-blue)](https://pkg.go.dev/github.com/johnfercher/maroto?tab=doc)
-
-# Snackbox
 
 Organizations or offices need to set up a consumption section that is in charge of providing food, where they have to find restaurants and contact them all the time to track their orders to ensure the orders are processed properly.
 
@@ -54,14 +66,6 @@ go run .
 ## High Level Architecture
 
 ![High Level Architecture](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-hla.png)
-
-## API Documentation
-
-[API Documentation](https://app.swaggerhub.com/apis-docs/furqonzt99/snackbox/1)
-
-## Wire Flow
-
-[Wire Flow](https://whimsical.com/snackbox-UcYKhew5MBhFzJWaCXQbAb)
 
 ## Structure
 
