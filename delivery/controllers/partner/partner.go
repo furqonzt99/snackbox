@@ -198,36 +198,6 @@ func (p PartnerController) RejectPartner() echo.HandlerFunc {
 	}
 }
 
-func (p PartnerController) GetPartnerData() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		userJwt, _ := middlewares.ExtractTokenUser(c)
-
-		partner, err := p.Repo.GetPartner(userJwt.PartnerID)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-		}
-		// layoutFormat := "2006-01-02"
-		// date, _ := time.Parse(layoutFormat, partner.CreatedAt.String()[:11])
-		// fmt.Println(partner.CreatedAt.String()[:11])
-		// date := partner.CreatedAt.Format(time.RFC822Z)
-
-		partnerData := PartnerData{
-			ID:            int(partner.ID),
-			BussinessName: partner.BussinessName,
-			Description:   partner.Description,
-			Latitude:      partner.Latitude,
-			Longtitude:    partner.Longtitude,
-			Address:       partner.Address,
-			City:          partner.City,
-			LegalDocument: partner.LegalDocument,
-			Status:        partner.Status,
-			ApplyDate:     partner.CreatedAt.String()[:10],
-		}
-
-		return c.JSON(http.StatusOK, common.SuccessResponse(partnerData))
-	}
-}
-
 func (p PartnerController) GetPartnerProduct() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
@@ -306,14 +276,9 @@ func (p PartnerController) GetPartnerRating() echo.HandlerFunc {
 func (pc PartnerController) Upload(c echo.Context) error {
 	var requestUpload UploadDocumentRequest
 
-	if err := c.Bind(&requestUpload); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+	c.Bind(&requestUpload)
 
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	partner, err := pc.Repo.FindUserId(user.UserID)
 	if err != nil {
@@ -369,7 +334,7 @@ func (pc PartnerController) Upload(c echo.Context) error {
 
 	_, err = pc.Repo.UploadDocument(int(partner.ID), partnerData)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
 	return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())
@@ -469,11 +434,11 @@ func (p PartnerController) Report() echo.HandlerFunc {
 		}
 
 		reportLink := fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, filename)
-		
+
 		responses := ReportResponse{
 			ReportLink: reportLink,
 		}
-		
+
 		return c.JSON(http.StatusOK, common.SuccessResponse(responses))
 	}
 

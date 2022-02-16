@@ -175,14 +175,9 @@ func (pc ProductController) Upload(c echo.Context) error {
 
 	var requestUpload UpdateProductRequestFormat
 
-	if err := c.Bind(&requestUpload); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+	c.Bind(&requestUpload)
 
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	product, err := pc.Repo.FindProduct(productID, user.PartnerID)
 	if err != nil {
@@ -208,7 +203,7 @@ func (pc ProductController) Upload(c echo.Context) error {
 	if !filetype.IsImage(head) {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, "file type must an image"))
 	}
-	
+
 	prefix := "products/"
 
 	fileID := strings.ReplaceAll(uuid.New().String(), "-", "")
@@ -230,7 +225,7 @@ func (pc ProductController) Upload(c echo.Context) error {
 
 	_, err = pc.Repo.UploadImage(productID, productData)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
 	return c.JSON(http.StatusOK, common.NewSuccessOperationResponse())

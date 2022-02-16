@@ -31,29 +31,23 @@ func (rc RatingController) Create(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
-	if err := c.Validate(&ratingRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
-
 	if ratingRequest.Rating < 1 && ratingRequest.Rating > 5 {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
 	user, _ := middlewares.ExtractTokenUser(c)
 
-	isCanGiveRating, _ := rc.Repo.IsCanGiveRating(user.UserID, trxID)
-	if !isCanGiveRating {
+	transaction, err := rc.Repo.IsCanGiveRating(user.UserID, trxID)
+	if err != nil {
 		return c.JSON(http.StatusNotFound, common.NewNotFoundResponse())
 	}
 
 	data := models.Rating{
 		TransactionID: uint(trxID),
+		PartnerID:     uint(transaction.PartnerID),
 		UserID:        uint(user.UserID),
 		Rating:        ratingRequest.Rating,
 		Comment:       ratingRequest.Comment,
-		Transaction:   models.Transaction{},
-		User:          models.User{},
-		Partner:       models.Partner{},
 	}
 
 	ratingData, err := rc.Repo.Create(data)
@@ -65,15 +59,15 @@ func (rc RatingController) Create(c echo.Context) error {
 	}
 
 	response := RatingResponse{
-		TransactionID: int(data.TransactionID),
-		PartnerID:  int(ratingData.PartnerID),
-		UserID:   int(ratingData.UserID),
-		Username: ratingData.User.Name,
-		Rating:   ratingData.Rating,
-		Comment:  ratingData.Comment,
+		TransactionID: trxID,
+		PartnerID:     int(ratingData.PartnerID),
+		UserID:        int(ratingData.UserID),
+		Username:      ratingData.User.Name,
+		Rating:        ratingData.Rating,
+		Comment:       ratingData.Comment,
 	}
 
-	return c.JSON(http.StatusOK, common.SuccessResponse(response)) 
+	return c.JSON(http.StatusOK, common.SuccessResponse(response))
 }
 
 func (rc RatingController) GetByTrxID(c echo.Context) error {
@@ -89,11 +83,11 @@ func (rc RatingController) GetByTrxID(c echo.Context) error {
 
 	response := RatingResponse{
 		TransactionID: int(rating.TransactionID),
-		PartnerID: int(rating.PartnerID),
-		UserID:    int(rating.UserID),
-		Username:  rating.User.Name,
-		Rating:    rating.Rating,
-		Comment:   rating.Comment,
+		PartnerID:     int(rating.PartnerID),
+		UserID:        int(rating.UserID),
+		Username:      rating.User.Name,
+		Rating:        rating.Rating,
+		Comment:       rating.Comment,
 	}
 
 	return c.JSON(http.StatusBadRequest, common.SuccessResponse(response))

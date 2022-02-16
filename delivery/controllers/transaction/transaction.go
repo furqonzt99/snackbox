@@ -28,12 +28,10 @@ func NewTransactionController(repo transaction.TransactionInterface) *Transactio
 func (tc *TransactionController) Order(c echo.Context) error {
 	var transactionRequest TransactionRequest
 
-	if err := c.Bind(&transactionRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+	c.Bind(&transactionRequest)
 
 	if err := c.Validate(&transactionRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
 	user, _ := middlewares.ExtractTokenUser(c)
@@ -60,20 +58,20 @@ func (tc *TransactionController) Order(c echo.Context) error {
 	}
 
 	transaction := models.Transaction{
-		UserID:         uint(user.UserID),
-		PartnerID:      uint(partner.ID),
-		Buffet:         transactionRequest.Buffet,
-		Quantity:       transactionRequest.Quantity,
-		DateTime:       dateTime,
-		Latitude:       transactionRequest.Latitude,
-		Longtitude:     transactionRequest.Longtitude,
-		Distance: distance,
-		InvoiceID:      invoiceId,
+		UserID:     uint(user.UserID),
+		PartnerID:  uint(partner.ID),
+		Buffet:     transactionRequest.Buffet,
+		Quantity:   transactionRequest.Quantity,
+		DateTime:   dateTime,
+		Latitude:   transactionRequest.Latitude,
+		Longtitude: transactionRequest.Longtitude,
+		Distance:   distance,
+		InvoiceID:  invoiceId,
 	}
 
 	transactionOrder, err := tc.Repo.Order(transaction, user.Email, transactionRequest.Products)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
 	productItems := []product.ProductResponse{}
@@ -90,7 +88,7 @@ func (tc *TransactionController) Order(c echo.Context) error {
 	response := TransactionResponse{
 		ID:             int(transactionOrder.ID),
 		UserID:         int(transactionOrder.UserID),
-		UserName: transactionOrder.User.Name,
+		UserName:       transactionOrder.User.Name,
 		PartnerID:      int(transactionOrder.PartnerID),
 		InvoiceID:      transactionOrder.InvoiceID,
 		Buffet:         transactionOrder.Buffet,
@@ -114,24 +112,22 @@ func (tc *TransactionController) Order(c echo.Context) error {
 func (tc TransactionController) Callback(c echo.Context) error {
 
 	var callbackRequest common.TransactionCallbackRequest
-	if err := c.Bind(&callbackRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+	c.Bind(&callbackRequest)
 
 	var data models.Transaction
 	data.PaidAt, _ = time.Parse(time.RFC3339, callbackRequest.PaidAt)
 	data.PaymentMethod = callbackRequest.PaymentMethod
 	data.PaymentChannel = callbackRequest.PaymentChannel
 	data.Status = callbackRequest.Status
-	
+
 	var refund float64
 
 	if callbackRequest.Status == "PAID" {
 		refund = 0
 	} else {
 		for _, item := range callbackRequest.Items {
-		refund += item.Price
-	}
+			refund += item.Price
+		}
 	}
 
 	_, err := tc.Repo.Callback(callbackRequest.ExternalID, data, refund)
@@ -149,10 +145,7 @@ func (tc TransactionController) Accept(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	_, err = tc.Repo.Accept(trxID, user.PartnerID)
 	if err != nil {
@@ -169,10 +162,7 @@ func (tc TransactionController) Reject(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	_, err = tc.Repo.Reject(trxID, user.PartnerID)
 	if err != nil {
@@ -189,10 +179,7 @@ func (tc TransactionController) Send(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	_, err = tc.Repo.Send(trxID, user.PartnerID)
 	if err != nil {
@@ -209,10 +196,7 @@ func (tc TransactionController) Confirm(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	_, err = tc.Repo.Confirm(trxID, user.UserID)
 	if err != nil {
@@ -223,10 +207,7 @@ func (tc TransactionController) Confirm(c echo.Context) error {
 }
 
 func (tc TransactionController) GetAll(c echo.Context) error {
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	var data []models.Transaction
 	if user.PartnerID != 0 {
@@ -252,7 +233,7 @@ func (tc TransactionController) GetAll(c echo.Context) error {
 		response = append(response, TransactionResponse{
 			ID:             int(trx.ID),
 			UserID:         int(trx.UserID),
-			UserName: trx.User.Name,
+			UserName:       trx.User.Name,
 			PartnerID:      int(trx.PartnerID),
 			InvoiceID:      trx.InvoiceID,
 			Buffet:         trx.Buffet,
@@ -281,10 +262,7 @@ func (tc TransactionController) GetOne(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	data := models.Transaction{}
 
@@ -313,7 +291,7 @@ func (tc TransactionController) GetOne(c echo.Context) error {
 	response = append(response, TransactionResponse{
 		ID:             int(data.ID),
 		UserID:         int(data.UserID),
-		UserName: data.User.Name,
+		UserName:       data.User.Name,
 		PartnerID:      int(data.PartnerID),
 		InvoiceID:      data.InvoiceID,
 		Buffet:         data.Buffet,
@@ -336,10 +314,8 @@ func (tc TransactionController) GetOne(c echo.Context) error {
 
 func (tc TransactionController) Shipping(c echo.Context) error {
 	var shippingRequest ShippingCostRequest
-	
-	if err := c.Bind(&shippingRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+
+	c.Bind(&shippingRequest)
 
 	if err := c.Validate(&shippingRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
