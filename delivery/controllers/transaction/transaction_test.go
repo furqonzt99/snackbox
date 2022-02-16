@@ -266,6 +266,28 @@ func TestTransactionCallback(t *testing.T) {
 		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
 		assert.Equal(t, "Not Found", responses.Message)
 	})
+
+	t.Run("callback success", func(t *testing.T) { // not solved 1
+		e := echo.New()
+
+		bodyReq, _ := json.Marshal(common.TransactionCallbackRequest{
+			ExternalID: "1",
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(bodyReq))
+		res := httptest.NewRecorder()
+
+		context := e.NewContext(req, res)
+		context.SetPath("/transactions/callback")
+
+		transactionController := transaction.NewTransactionController(mockTransaction{})
+		transactionController.Callback(context)
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Successful Operation", responses.Message)
+	})
 }
 
 func TestAcceptTransaction(t *testing.T) {

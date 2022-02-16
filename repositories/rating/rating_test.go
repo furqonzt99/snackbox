@@ -354,7 +354,6 @@ func TestIsCanGiveRating(t *testing.T) {
 	})
 
 	t.Run("IsCanGiveRating failed", func(t *testing.T) {
-		db.Migrator().DropTable(&models.Rating{})
 		var mockRating models.Rating
 		mockRating.TransactionID = 99
 		mockRating.PartnerID = 99

@@ -56,7 +56,7 @@ func (tr *TransactionRepository) Order(transaction models.Transaction, email str
 	if err := tr.db.First(&user, "email = ?", email).Error; err != nil {
 		return transaction, err
 	}
-	
+
 	err = tr.db.Transaction(func(tx *gorm.DB) error {
 
 		if err := tr.db.Preload("Products").First(&transaction, transaction.ID).Error; err != nil {
@@ -70,7 +70,7 @@ func (tr *TransactionRepository) Order(transaction models.Transaction, email str
 			return err
 		}
 
-		balanceRemain := user.Balance - transactionPayment.TotalPrice;
+		balanceRemain := user.Balance - transactionPayment.TotalPrice
 		if balanceRemain <= 0 {
 			balanceRemain = 0
 		}
@@ -98,7 +98,7 @@ func (tr *TransactionRepository) Order(transaction models.Transaction, email str
 	return transaction, nil
 }
 
-func (tr *TransactionRepository) Accept(trxID int, partnerID int) (models.Transaction, error)  {
+func (tr *TransactionRepository) Accept(trxID int, partnerID int) (models.Transaction, error) {
 	trx := models.Transaction{}
 
 	const PAID_STATUS = "PAID"
@@ -112,7 +112,7 @@ func (tr *TransactionRepository) Accept(trxID int, partnerID int) (models.Transa
 	return trx, nil
 }
 
-func (tr *TransactionRepository) Reject(trxID int, partnerID int) (models.Transaction, error)  {
+func (tr *TransactionRepository) Reject(trxID int, partnerID int) (models.Transaction, error) {
 	trx := models.Transaction{}
 
 	const PAID_STATUS = "PAID"
@@ -138,12 +138,11 @@ func (tr *TransactionRepository) Reject(trxID int, partnerID int) (models.Transa
 
 		return nil
 	})
-	
 
 	return trx, nil
 }
 
-func (tr *TransactionRepository) Send(trxID int, partnerID int) (models.Transaction, error)  {
+func (tr *TransactionRepository) Send(trxID int, partnerID int) (models.Transaction, error) {
 	trx := models.Transaction{}
 
 	const ACCEPT_STATUS = "ACCEPT"
@@ -157,7 +156,7 @@ func (tr *TransactionRepository) Send(trxID int, partnerID int) (models.Transact
 	return trx, nil
 }
 
-func (tr *TransactionRepository) Confirm(trxID int, userID int) (models.Transaction, error)  {
+func (tr *TransactionRepository) Confirm(trxID int, userID int) (models.Transaction, error) {
 	trx := models.Transaction{}
 
 	const SEND_STATUS = "SEND"
@@ -184,7 +183,6 @@ func (tr *TransactionRepository) Confirm(trxID int, userID int) (models.Transact
 
 		return nil
 	})
-	
 
 	return trx, nil
 }
@@ -262,7 +260,7 @@ func (tr *TransactionRepository) Callback(invId string, transaction models.Trans
 		return transaction, err
 	}
 
-	balance := user.Balance + refund;
+	balance := user.Balance + refund
 
 	err := tr.db.Transaction(func(tx *gorm.DB) error {
 
@@ -292,7 +290,7 @@ func (tr *TransactionRepository) GetDistance(partnerID int, latitude, longtitude
 	}
 
 	var distance float64
-	const EARTH_RADIUS_IN_KILOMETER = 6371 
+	const EARTH_RADIUS_IN_KILOMETER = 6371
 
 	if err := tr.db.Raw("select (? * acos ( cos ( radians( ? ) ) * cos ( radians (latitude) ) * cos ( radians (longtitude) - radians( ? ) ) + sin(radians( ? )) * sin(radians(latitude)))) as distance from partners where id = ?", EARTH_RADIUS_IN_KILOMETER, latitude, longtitude, latitude, partnerID).Scan(&distance).Error; err != nil {
 		return 0, err
