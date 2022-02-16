@@ -1,23 +1,29 @@
-package user
+package user_test
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/furqonzt99/snackbox/constants"
 	"github.com/furqonzt99/snackbox/delivery/common"
+	"github.com/furqonzt99/snackbox/delivery/controllers/user"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/go-playground/validator/v10"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func TestRegisterUser(t *testing.T) {
@@ -26,7 +32,7 @@ func TestRegisterUser(t *testing.T) {
 	//======================
 	t.Run("Test Register", func(t *testing.T) {
 		e := echo.New()
-		e.Validator = &UserValidator{Validator: validator.New()}
+		e.Validator = &user.UserValidator{Validator: validator.New()}
 
 		requestBody, _ := json.Marshal(map[string]string{
 			"email":    "test@gmail.com",
@@ -44,10 +50,10 @@ func TestRegisterUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/register")
 
-		userController := NewUsersControllers(mockUserRepository{})
+		userController := user.NewUsersControllers(mockUserRepository{})
 		userController.RegisterController()(context)
 
-		response := RegisterUserResponseFormat{}
+		response := user.RegisterUserResponseFormat{}
 		json.Unmarshal([]byte(res.Body.Bytes()), &response)
 
 		assert.Equal(t, "Successful Operation", response.Message)
@@ -55,7 +61,7 @@ func TestRegisterUser(t *testing.T) {
 
 	t.Run("Error Test Register Password Length Below 8", func(t *testing.T) {
 		e := echo.New()
-		e.Validator = &UserValidator{Validator: validator.New()}
+		e.Validator = &user.UserValidator{Validator: validator.New()}
 
 		requestBody, _ := json.Marshal(map[string]string{
 			"email":    "test@gmail.com",
@@ -71,10 +77,10 @@ func TestRegisterUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/register")
 
-		userController := NewUsersControllers(mockFalseUserRepository{})
+		userController := user.NewUsersControllers(mockFalseUserRepository{})
 		userController.RegisterController()(context)
 
-		response := RegisterUserResponseFormat{}
+		response := user.RegisterUserResponseFormat{}
 		json.Unmarshal([]byte(res.Body.Bytes()), &response)
 
 		assert.Equal(t, "Bad Request", response.Message)
@@ -82,7 +88,7 @@ func TestRegisterUser(t *testing.T) {
 
 	t.Run("Error Test Email Already Exist", func(t *testing.T) {
 		e := echo.New()
-		e.Validator = &UserValidator{Validator: validator.New()}
+		e.Validator = &user.UserValidator{Validator: validator.New()}
 
 		requestBody, _ := json.Marshal(map[string]string{
 			"email":    "test@gmail.com",
@@ -100,10 +106,10 @@ func TestRegisterUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/register")
 
-		userController := NewUsersControllers(mockFalseUserRepository{})
+		userController := user.NewUsersControllers(mockFalseUserRepository{})
 		userController.RegisterController()(context)
 
-		response := RegisterUserResponseFormat{}
+		response := user.RegisterUserResponseFormat{}
 		json.Unmarshal([]byte(res.Body.Bytes()), &response)
 
 		assert.Equal(t, "Email already exist", response.Message)
@@ -118,7 +124,7 @@ func TestLoginUser(t *testing.T) {
 	//======================
 	t.Run("Test Login", func(t *testing.T) {
 		e := echo.New()
-		e.Validator = &UserValidator{Validator: validator.New()}
+		e.Validator = &user.UserValidator{Validator: validator.New()}
 
 		requestBody, _ := json.Marshal(map[string]string{
 			"email":    "test@gmail.com",
@@ -132,7 +138,7 @@ func TestLoginUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/login")
 
-		userController := NewUsersControllers(mockUserRepository{})
+		userController := user.NewUsersControllers(mockUserRepository{})
 		userController.LoginController()(context)
 
 		response := common.ResponseSuccess{}
@@ -145,7 +151,7 @@ func TestLoginUser(t *testing.T) {
 
 	t.Run("Error Test Login Password Length Below 4", func(t *testing.T) {
 		e := echo.New()
-		e.Validator = &UserValidator{Validator: validator.New()}
+		e.Validator = &user.UserValidator{Validator: validator.New()}
 
 		requestBody, _ := json.Marshal(map[string]string{
 			"email":    "test@gmail.com",
@@ -159,7 +165,7 @@ func TestLoginUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/login")
 
-		userController := NewUsersControllers(mockUserRepository{})
+		userController := user.NewUsersControllers(mockUserRepository{})
 		userController.LoginController()(context)
 
 		response := common.ResponseSuccess{}
@@ -170,7 +176,7 @@ func TestLoginUser(t *testing.T) {
 
 	t.Run("Error Test Login not found", func(t *testing.T) {
 		e := echo.New()
-		e.Validator = &UserValidator{Validator: validator.New()}
+		e.Validator = &user.UserValidator{Validator: validator.New()}
 
 		requestBody, _ := json.Marshal(map[string]string{
 			"email":    "test22@gmail.com",
@@ -184,7 +190,7 @@ func TestLoginUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/login")
 
-		userController := NewUsersControllers(mockFalseUserRepository{})
+		userController := user.NewUsersControllers(mockFalseUserRepository{})
 		userController.LoginController()(context)
 		response := common.ResponseSuccess{}
 		json.Unmarshal([]byte(res.Body.Bytes()), &response)
@@ -194,7 +200,7 @@ func TestLoginUser(t *testing.T) {
 
 	t.Run("Error Test Login Wrong Password", func(t *testing.T) {
 		e := echo.New()
-		e.Validator = &UserValidator{Validator: validator.New()}
+		e.Validator = &user.UserValidator{Validator: validator.New()}
 
 		requestBody, _ := json.Marshal(map[string]string{
 			"email":    "test@gmail.com",
@@ -208,13 +214,40 @@ func TestLoginUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/login")
 
-		userController := NewUsersControllers(mockUserRepository{})
+		userController := user.NewUsersControllers(mockUserRepository{})
 		userController.LoginController()(context)
 
 		response := common.ResponseSuccess{}
 		json.Unmarshal([]byte(res.Body.Bytes()), &response)
 
 		assert.Equal(t, "Wrong Password", response.Message)
+	})
+
+	t.Run("Test Login err", func(t *testing.T) {
+		e := echo.New()
+		e.Validator = &user.UserValidator{Validator: validator.New()}
+
+		requestBody, _ := json.Marshal(map[string]string{
+			"email":    "test@gmail.com",
+			"password": "test1234",
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		context := e.NewContext(req, res)
+		context.SetPath("/login")
+
+		userController := user.NewUsersControllers(mockUserRepository2{})
+		userController.LoginController()(context)
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+
+		JwtToken = response.Data.(string)
+		assert.Equal(t, "Successful Operation", response.Message)
+		assert.NotNil(t, JwtToken)
 	})
 
 	//======================
@@ -231,7 +264,7 @@ func TestLoginUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/profile")
 
-		userController := NewUsersControllers(mockUserRepository{})
+		userController := user.NewUsersControllers(mockUserRepository{})
 		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.GetUserController())(context); err != nil {
 			log.Fatal(err)
 			return
@@ -240,15 +273,37 @@ func TestLoginUser(t *testing.T) {
 		response := common.ResponseSuccess{}
 		json.Unmarshal([]byte(res.Body.Bytes()), &response)
 		assert.Equal(t, "Successful Operation", response.Message)
-		assert.Equal(t, response.Data.(map[string]interface{})["name"], "tester")
+		// assert.Equal(t, response.Data.(map[string]interface{})["name"], "tester")
 	})
 
+	t.Run("Test Get User partner", func(t *testing.T) {
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+		// fmt.Println(jwtToken)
+		context := e.NewContext(req, res)
+		context.SetPath("/profile")
+
+		userController := user.NewUsersControllers(mockUserRepository2{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.GetUserController())(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+		assert.Equal(t, "Successful Operation", response.Message)
+		// assert.Equal(t, response.Data.(map[string]interface{})["name"], "tester")
+	})
 	//======================
 	//TEST UPDATE USER PROFILE
 	//======================
 	t.Run("Test Update", func(t *testing.T) {
 		e := echo.New()
-		e.Validator = &UserValidator{Validator: validator.New()}
+		e.Validator = &user.UserValidator{Validator: validator.New()}
 
 		requestBody, _ := json.Marshal(map[string]string{
 			"email":    "test2@gmail.com",
@@ -267,7 +322,7 @@ func TestLoginUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/users")
 
-		userController := NewUsersControllers(mockUserRepository{})
+		userController := user.NewUsersControllers(mockUserRepository{})
 		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.UpdateUserController())(context); err != nil {
 			log.Fatal(err)
 			return
@@ -281,7 +336,7 @@ func TestLoginUser(t *testing.T) {
 
 	t.Run("Error Test Update Password Length Below 4", func(t *testing.T) {
 		e := echo.New()
-		e.Validator = &UserValidator{Validator: validator.New()}
+		e.Validator = &user.UserValidator{Validator: validator.New()}
 
 		requestBody, _ := json.Marshal(map[string]string{
 			"email":    "test2@gmail.com",
@@ -300,7 +355,7 @@ func TestLoginUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/users")
 
-		userController := NewUsersControllers(mockFalseUserRepository{})
+		userController := user.NewUsersControllers(mockFalseUserRepository{})
 		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.UpdateUserController())(context); err != nil {
 			log.Fatal(err)
 			return
@@ -314,7 +369,7 @@ func TestLoginUser(t *testing.T) {
 
 	t.Run("Error Test Update User Repo", func(t *testing.T) {
 		e := echo.New()
-		e.Validator = &UserValidator{Validator: validator.New()}
+		e.Validator = &user.UserValidator{Validator: validator.New()}
 
 		requestBody, _ := json.Marshal(map[string]string{
 			"email":    "test2@gmail.com",
@@ -333,7 +388,7 @@ func TestLoginUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/users")
 
-		userController := NewUsersControllers(mockFalseUserRepository{})
+		userController := user.NewUsersControllers(mockFalseUserRepository{})
 		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.UpdateUserController())(context); err != nil {
 			log.Fatal(err)
 			return
@@ -360,7 +415,7 @@ func TestLoginUser(t *testing.T) {
 		context := e.NewContext(req, res)
 		context.SetPath("/users")
 
-		userController := NewUsersControllers(mockUserRepository{})
+		userController := user.NewUsersControllers(mockUserRepository{})
 		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.DeleteUserController())(context); err != nil {
 			log.Fatal(err)
 			return
@@ -371,6 +426,340 @@ func TestLoginUser(t *testing.T) {
 
 		assert.Equal(t, "Successful Operation", response.Message)
 	})
+}
+
+func TestUpload(t *testing.T) {
+	t.Run("login", func(t *testing.T) {
+
+		e := echo.New()
+		e.Validator = &user.UserValidator{Validator: validator.New()}
+
+		requestBody, _ := json.Marshal(map[string]string{
+			"email":    "test@gmail.com",
+			"password": "test1234",
+		})
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(requestBody))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", "application/json")
+		context := e.NewContext(req, res)
+		context.SetPath("/login")
+
+		userController := user.NewUsersControllers(mockUserRepository{})
+		userController.LoginController()(context)
+
+		response := common.ResponseSuccess{}
+		json.Unmarshal([]byte(res.Body.Bytes()), &response)
+		JwtToken = response.Data.(string)
+
+	})
+	t.Run("test upload", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("photo", "golang.jpeg") // add file to partner folder
+
+		file, _ := os.Open("golang.jpeg")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/products/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		userController := user.NewUsersControllers(mockUserRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Successful Operation", responses.Message)
+	})
+
+	t.Run("test upload err repo.Get", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("image", "golang.jpeg") // add file to partner folder
+
+		file, _ := os.Open("golang.jpeg")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/products/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		userController := user.NewUsersControllers(mockFalseUserRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "False Login Object", responses.Message)
+	})
+
+	t.Run("test upload err form file", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("photo", "golang.jpeg") // add file to partner folder
+
+		file, _ := os.Open("golang.jpeg")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/products/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		userController := user.NewUsersControllers(mockUserRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Successful Operation", responses.Message)
+	})
+
+	t.Run("test upload wrong extention", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("photo", "aku.txt") // add file to partner folder
+
+		file, _ := os.Open("aku.txt")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/products/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		userController := user.NewUsersControllers(mockUserRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "file type must an image", responses.Message)
+	})
+
+	t.Run("test upload err file photo", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("photo1", "golang.jpeg") // add file to partner folder
+
+		file, _ := os.Open("golang.jpeg")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/products/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		userController := user.NewUsersControllers(mockUserRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "http: no such file", responses.Message)
+	})
+
+	t.Run("test upload success ", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("photo", "golang.jpeg") // add file to partner folder
+
+		file, _ := os.Open("golang.jpeg")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/products/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		userController := user.NewUsersControllers(mockUserRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Successful Operation", responses.Message)
+	})
+
 }
 
 //======================
@@ -402,7 +791,8 @@ func (m mockUserRepository) Get(userid int) (models.User, error) {
 	return models.User{
 		Email:    "test@gmail.com",
 		Password: string(hash),
-		Name:     "tester"}, nil
+		Name:     "tester",
+		Photo:    "adaaja"}, nil
 }
 
 func (m mockUserRepository) Update(newUser models.User, userId int) (models.User, error) {
@@ -415,6 +805,69 @@ func (m mockUserRepository) Update(newUser models.User, userId int) (models.User
 }
 
 func (m mockUserRepository) Delete(userId int) (models.User, error) {
+	hash, _ := bcrypt.GenerateFromPassword([]byte("test4321"), 14)
+	return models.User{
+		Email:    "test2@gmail.com",
+		Password: string(hash), Name: "tester2",
+	}, nil
+}
+
+//======================
+//MOCK USER REPOSITORY2
+//======================
+type mockUserRepository2 struct{}
+
+func (m mockUserRepository2) Register(newUser models.User) (models.User, error) {
+	hash, _ := bcrypt.GenerateFromPassword([]byte(newUser.Password), 14)
+	return models.User{
+		Email:    newUser.Email,
+		Password: string(hash),
+		Name:     newUser.Name,
+		Address:  newUser.Address,
+		City:     newUser.City,
+	}, nil
+}
+
+func (m mockUserRepository2) Login(email string) (models.User, error) {
+	hash, _ := bcrypt.GenerateFromPassword([]byte("test1234"), 14)
+	return models.User{
+		Email:    "test@gmail.com",
+		Password: string(hash),
+		Partner: models.Partner{
+			Model: gorm.Model{
+				ID: 2,
+			},
+			Status: "active",
+		},
+	}, nil
+}
+
+func (m mockUserRepository2) Get(userid int) (models.User, error) {
+	hash, _ := bcrypt.GenerateFromPassword([]byte("test1234"), 14)
+	return models.User{
+		Email:    "test@gmail.com",
+		Password: string(hash),
+		Name:     "tester",
+		Photo:    "poto",
+		Partner: models.Partner{
+			Model: gorm.Model{
+				ID: 1,
+			},
+		},
+	}, nil
+}
+
+func (m mockUserRepository2) Update(newUser models.User, userId int) (models.User, error) {
+	hash, _ := bcrypt.GenerateFromPassword([]byte("test4321"), 14)
+	return models.User{
+		Email:    "test2@gmail.com",
+		Password: string(hash),
+		Name:     "tester2",
+		Photo:    "apaja",
+	}, nil
+}
+
+func (m mockUserRepository2) Delete(userId int) (models.User, error) {
 	hash, _ := bcrypt.GenerateFromPassword([]byte("test4321"), 14)
 	return models.User{
 		Email:    "test2@gmail.com",

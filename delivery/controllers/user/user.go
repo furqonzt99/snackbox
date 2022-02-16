@@ -104,7 +104,7 @@ func (uscon UserController) GetUserController() echo.HandlerFunc {
 		user, _ := uscon.Repo.Get(userJwt.UserID)
 
 		var userProfile string
-		if user.Photo != "" { 
+		if user.Photo != "" {
 			userProfile = fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, user.Photo)
 		}
 
@@ -112,7 +112,7 @@ func (uscon UserController) GetUserController() echo.HandlerFunc {
 			data := UserProfileResponse{
 				ID:      user.ID,
 				Name:    user.Name,
-				Photo: userProfile,
+				Photo:   userProfile,
 				Email:   user.Email,
 				Balance: user.Balance,
 			}
@@ -122,7 +122,7 @@ func (uscon UserController) GetUserController() echo.HandlerFunc {
 		data := UserProfileResponseWithPartner{
 			ID:      user.ID,
 			Name:    user.Name,
-			Photo: userProfile,
+			Photo:   userProfile,
 			Email:   user.Email,
 			Balance: user.Balance,
 			Partner: partner.GetPartnerProfileResponse{
@@ -186,20 +186,15 @@ func (uscon UserController) DeleteUserController() echo.HandlerFunc {
 func (uc UserController) Upload(c echo.Context) error {
 	var requestUpload UserPhotoRequest
 
-	if err := c.Bind(&requestUpload); err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+	c.Bind(&requestUpload)
 
-	user, err := middlewares.ExtractTokenUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
+	user, _ := middlewares.ExtractTokenUser(c)
 
 	userDB, err := uc.Repo.Get(user.UserID)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, common.ErrorResponse(http.StatusNotFound, err.Error()))
 	}
-	
+
 	file, err := c.FormFile("photo")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, common.ErrorResponse(http.StatusBadRequest, err.Error()))
@@ -212,7 +207,7 @@ func (uc UserController) Upload(c echo.Context) error {
 	defer src.Close()
 
 	head := make([]byte, 261)
-  	src.Read(head)
+	src.Read(head)
 
 	kind, _ := filetype.Match(head)
 

@@ -9,7 +9,7 @@ type RatingInterface interface {
 	Create(rating models.Rating) (models.Rating, error)
 	Update(models.Rating) (models.Rating, error)
 	IsCanGiveRating(userId, transactionId int) (models.Transaction, error)
-	GetByTrxID(trxID int) (models.Rating, error) 
+	GetByTrxID(trxID int) (models.Rating, error)
 }
 
 type RatingRepository struct {
@@ -25,7 +25,7 @@ func (rr RatingRepository) IsCanGiveRating(userId, transactionId int) (models.Tr
 
 	const CONFIRM_STATUS = "CONFIRM"
 
-	if err := rr.db.Where("user_id = ? AND transaction_id = ? AND status = ?", userId, transactionId, CONFIRM_STATUS).First(&transaction).Error; err != nil {
+	if err := rr.db.Where("user_id = ? AND id = ? AND status = ?", userId, transactionId, CONFIRM_STATUS).First(&transaction).Error; err != nil {
 		return transaction, err
 	}
 

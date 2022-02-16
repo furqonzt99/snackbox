@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/furqonzt99/snackbox/constants"
@@ -17,6 +19,7 @@ import (
 	"github.com/furqonzt99/snackbox/delivery/controllers/user"
 	"github.com/furqonzt99/snackbox/models"
 	"github.com/go-playground/validator/v10"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/stretchr/testify/assert"
@@ -504,46 +507,38 @@ func TestUpload(t *testing.T) {
 		JwtToken = response.Data.(string)
 
 	})
+	t.Run("test upload", func(t *testing.T) {
 
-	t.Run("upload product badrequest 1", func(t *testing.T) {
+		err := godotenv.Load()
 
-		e := echo.New()
-
-		req := httptest.NewRequest(http.MethodPost, "/", nil)
-		res := httptest.NewRecorder()
-
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
-
-		context := e.NewContext(req, res)
-		context.SetPath("/products/:id")
-		context.SetParamNames("id")
-		context.SetParamValues("a")
-
-		userController := product.NewProductController(mockProductRepository{})
-		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.Upload)(context); err != nil {
-			log.Fatal(err)
-			return
+		if err != nil {
+			log.Fatal("Error loading .env file")
 		}
 
-		responses := common.ResponseSuccess{}
-		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
-		assert.Equal(t, "Bad Request", responses.Message)
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
 
-	})
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("image", "golang.jpeg") // add file to partner folder
 
-	t.Run("upload product badrequest 2", func(t *testing.T) {
+		file, _ := os.Open("golang.jpeg")
 
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
 		e := echo.New()
 
-		body := new(bytes.Buffer)
-		writer := multipart.NewWriter(body)
-		writer.WriteField("bu", "HFL")
-		part, _ := writer.CreateFormFile("file", "file.csv")
-		part.Write([]byte(`sample`))
-
-		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
 		res := httptest.NewRecorder()
 
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
 
 		context := e.NewContext(req, res)
@@ -551,45 +546,321 @@ func TestUpload(t *testing.T) {
 		context.SetParamNames("id")
 		context.SetParamValues("1")
 
-		userController := product.NewProductController(mockProductRepository{})
-		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.Upload)(context); err != nil {
+		productController := product.NewProductController(mockProductRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(productController.Upload)(context); err != nil {
 			log.Fatal(err)
 			return
 		}
 
-		responses := common.ResponseSuccess{}
-		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
-		assert.Equal(t, "request Content-Type isn't multipart/form-data", responses.Message)
+		var responses common.ResponseSuccess
 
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Successful Operation", responses.Message)
 	})
 
-	t.Run("upload product badrequest 3", func(t *testing.T) {
+	t.Run("test upload bad request param", func(t *testing.T) {
 
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("image", "golang.jpeg") // add file to partner folder
+
+		file, _ := os.Open("golang.jpeg")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
 		e := echo.New()
 
-		bodyReq, _ := json.Marshal(product.UpdateProductRequestFormat{})
-
-		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(bodyReq))
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
 		res := httptest.NewRecorder()
 
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
-		req.Header.Add("Content-Type", "multipart/form-data")
 
 		context := e.NewContext(req, res)
 		context.SetPath("/products/:id")
 		context.SetParamNames("id")
 		context.SetParamValues("a")
 
-		userController := product.NewProductController(mockProductRepository{})
-		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(userController.Upload)(context); err != nil {
+		productController := product.NewProductController(mockProductRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(productController.Upload)(context); err != nil {
 			log.Fatal(err)
 			return
 		}
 
-		responses := common.ResponseSuccess{}
+		var responses common.ResponseSuccess
+
 		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
 		assert.Equal(t, "Bad Request", responses.Message)
+	})
 
+	t.Run("test upload err find product", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("image", "golang.jpeg") // add file to partner folder
+
+		file, _ := os.Open("golang.jpeg")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/products/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		productController := product.NewProductController(mockFalseProductRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(productController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Not Found", responses.Message)
+	})
+	t.Run("test upload err form file", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("image_failed", "golang.jpeg") // add file to partner folder
+
+		file, _ := os.Open("golang.jpeg")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/products/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		productController := product.NewProductController(mockProductRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(productController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "http: no such file", responses.Message)
+	})
+
+	t.Run("test upload err extension not image", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("image", "golang1.jpeg") // add file to partner folder
+
+		file, _ := os.Open("golang1.jpeg")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/products/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		productController := product.NewProductController(mockProductRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(productController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "file type must an image", responses.Message)
+	})
+
+	t.Run("test upload err upload s3", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION_Failed")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("image", "golang.jpeg") // add file to partner folder
+
+		file, _ := os.Open("golang.jpeg")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/products/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		productController := product.NewProductController(mockProductRepository{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(productController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "MissingRegion: could not find region configuration", responses.Message)
+	})
+
+	t.Run("test upload err repo.upload image", func(t *testing.T) {
+
+		err := godotenv.Load()
+
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+		constants.AWS_ACCESS_KEY_ID = os.Getenv("AWS_ACCESS_KEY_ID")
+		constants.AWS_ACCESS_SECRET_KEY = os.Getenv("AWS_ACCESS_SECRET_KEY")
+		constants.S3_REGION = os.Getenv("S3_REGION")
+		constants.S3_BUCKET = os.Getenv("S3_BUCKET")
+		constants.LINK_TEMPLATE = os.Getenv("LINK_TEMPLATE")
+		//////////////////////////////////
+		body := &bytes.Buffer{}
+
+		writer := multipart.NewWriter(body)
+		fw, _ := writer.CreateFormFile("image", "golang.jpeg") // add file to partner folder
+
+		file, _ := os.Open("golang.jpeg")
+
+		_, _ = io.Copy(fw, file)
+
+		writer.Close()
+
+		//////////////////////////////////
+		e := echo.New()
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body.Bytes()))
+		res := httptest.NewRecorder()
+
+		req.Header.Set("Content-Type", writer.FormDataContentType()) // <<< important part
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", JwtToken))
+
+		context := e.NewContext(req, res)
+		context.SetPath("/products/:id")
+		context.SetParamNames("id")
+		context.SetParamValues("1")
+
+		productController := product.NewProductController(mockProductRepository5{})
+		if err := middleware.JWT([]byte(constants.JWT_SECRET_KEY))(productController.Upload)(context); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		var responses common.ResponseSuccess
+
+		json.Unmarshal([]byte(res.Body.Bytes()), &responses)
+		assert.Equal(t, "Bad Request", responses.Message)
 	})
 }
 
@@ -649,6 +920,64 @@ func (m mockProductRepository) UploadImage(productID int, product models.Product
 		Description: "testProduct1",
 		Price:       1000,
 	}, nil
+}
+
+//======================
+//MOCK PRODUCT REPOSITORY 5
+//======================
+
+type mockProductRepository5 struct{}
+
+func (m mockProductRepository5) AddProduct(product models.Product) (models.Product, error) {
+	return models.Product{
+		// PartnerID:   0
+		Title:       "testProduct1",
+		Image:       "",
+		Type:        "testProduct1",
+		Description: "testProduct1",
+		Price:       1000,
+	}, nil
+}
+
+func (m mockProductRepository5) FindProduct(productId, partnerId int) (models.Product, error) {
+	return models.Product{
+		Model: gorm.Model{
+			ID: uint(productId),
+		},
+		PartnerID:   uint(partnerId),
+		Title:       "testProduct1",
+		Image:       "",
+		Type:        "testProduct1",
+		Description: "testProduct1",
+		Price:       1000,
+	}, nil
+}
+func (m mockProductRepository5) DeleteProduct(productId, partnerId int) error {
+	return nil
+}
+func (m mockProductRepository5) GetAllProduct(offset, pageSize int, search, category string, latitude, longtitude float64) ([]models.Product, error) {
+	return []models.Product{
+		{
+			Title:       "testProduct1",
+			Type:        "testProduct1",
+			Description: "testProduct1",
+			Price:       1000,
+		},
+	}, nil
+}
+
+func (m mockProductRepository5) UploadImage(productID int, product models.Product) (models.Product, error) {
+	return models.Product{
+		Model: gorm.Model{
+			ID: uint(productID),
+		},
+		// PartnerID:   0,
+		Title: "testProduct1",
+		// Image:       "",
+		Type:        "testProduct1",
+		Description: "testProduct1",
+		Price:       1000,
+	}, errors.New("FAILED")
 }
 
 //======================

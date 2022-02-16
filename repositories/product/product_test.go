@@ -149,15 +149,15 @@ func TestFindProduct(t *testing.T) {
 
 	t.Run("find product success", func(t *testing.T) {
 
-		product := models.Product{
-			PartnerID: 1,
-			Title:     "jagung",
-			Type:      "snack",
-			Price:     1000,
-		}
-		productRepo.AddProduct(product)
-		res, _ := productRepo.FindProduct(2, 1)
-		assert.Equal(t, "jagung", res.Title)
+		// product := models.Product{
+		// 	PartnerID: 1,
+		// 	Title:     "jagung",
+		// 	Type:      "snack",
+		// 	Price:     1000,
+		// }
+		// productRepo.AddProduct(product)
+		res, _ := productRepo.FindProduct(1, 1)
+		assert.Equal(t, "rendang", res.Title)
 
 	})
 
@@ -236,7 +236,7 @@ func TestDeleteProduct(t *testing.T) {
 			Price:     1000,
 		}
 		productRepo.AddProduct(product)
-		err := productRepo.DeleteProduct(2, 1)
+		err := productRepo.DeleteProduct(1, 1)
 		assert.Nil(t, err)
 
 	})
@@ -302,14 +302,14 @@ func TestGetAllProduct(t *testing.T) {
 
 	t.Run("get all product success", func(t *testing.T) {
 
-		dummyProduct := models.Product{
+		dummyProduct2 := models.Product{
 			PartnerID:   1,
 			Title:       "rendang",
 			Type:        "ricebox",
 			Description: "enak",
 			Price:       1000,
 		}
-		productRepo.AddProduct(dummyProduct)
+		productRepo.AddProduct(dummyProduct2)
 		res, _ := productRepo.GetAllProduct(1, 10, "rendang", "", 0, 0)
 		assert.Equal(t, "rendang", res[0].Title)
 

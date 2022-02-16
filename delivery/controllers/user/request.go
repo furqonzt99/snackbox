@@ -29,7 +29,7 @@ type UserLoginRequestFormat struct {
 }
 
 type UserPhotoRequest struct {
-	Photo	string	`json:"photo" validate:"required"`
+	Photo string `json:"photo" validate:"required"`
 }
 type UserValidator struct {
 	Validator *validator.Validate
