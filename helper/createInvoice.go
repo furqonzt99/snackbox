@@ -29,11 +29,7 @@ func CreateInvoice(transaction models.Transaction, email string, balance float64
 		Price:    shippingCost,
 		Quantity: 1,
 	})
-   transaction.TotalPrice = SumTotalPrice(items)
-
-   fmt.Println(transaction.TotalPrice)
-   
-   fmt.Println(transaction.TotalPrice)
+	transaction.TotalPrice = SumTotalPrice(items)
 
 	totalPay := transaction.TotalPrice - balance
 
@@ -49,11 +45,11 @@ func CreateInvoice(transaction models.Transaction, email string, balance float64
 		}
 	} else {
 		data := invoice.CreateParams{
-			ExternalID:      transaction.InvoiceID,
-			Amount:          totalPay,
-			Description:     "SnackBox Invoice " + transaction.InvoiceID + " for " + email + " split with SboxPay Rp" + fmt.Sprint(balance),
-			PayerEmail:      email,
-			Items:           items,
+			ExternalID:  transaction.InvoiceID,
+			Amount:      totalPay,
+			Description: "SnackBox Invoice " + transaction.InvoiceID + " for " + email + " split with SboxPay Rp" + fmt.Sprint(balance),
+			PayerEmail:  email,
+			Items:       items,
 		}
 
 		resp, err := invoice.Create(&data)
@@ -62,7 +58,7 @@ func CreateInvoice(transaction models.Transaction, email string, balance float64
 		}
 
 		transactionSuccess = models.Transaction{
-			PaymentUrl:     resp.InvoiceURL,
+			PaymentUrl: resp.InvoiceURL,
 			TotalPrice: transaction.TotalPrice,
 		}
 	}
