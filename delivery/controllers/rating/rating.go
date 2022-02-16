@@ -27,9 +27,11 @@ func (rc RatingController) Create(c echo.Context) error {
 
 	var ratingRequest PostRatingRequest
 
-	c.Bind(&ratingRequest)
+	if err := c.Bind(&ratingRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
+	}
 
-	if err := c.Validate(&ratingRequest); err != nil {
+	if ratingRequest.Rating < 1 && ratingRequest.Rating > 5 {
 		return c.JSON(http.StatusBadRequest, common.NewBadRequestResponse())
 	}
 

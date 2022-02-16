@@ -9,7 +9,7 @@ import (
 )
 
 type PostRatingRequest struct {
-	Rating  int    `json:"rating" validate:"required,max=5,min=1"`
+	Rating int `json:"rating" validate:"required"`
 	Comment string `json:"comment"`
 }
 

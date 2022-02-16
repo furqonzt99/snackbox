@@ -2,3 +2,9 @@
 *./*.env
 *.out
 *./*.out
+*.pdf
+*./*.pdf
+*.txt
+*./*.txt
+*.jpeg
+*./*.jpeg
