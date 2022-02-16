@@ -1,55 +1,96 @@
-# SNACKBOX
+<div align="center">
+  <a href="https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-logo.png">
+    <img src="https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-logo.png" alt="Logo" height="100">
+  </a>
+</div>
+<div>
+  <p align="center">
+    </br>Catering Ecommerce Platform</br></br>
+    <a href="https://app.swaggerhub.com/apis-docs/furqonzt99/snackbox/1">API Docs</a>
+    ·
+    <a href="https://whimsical.com/snackbox-UcYKhew5MBhFzJWaCXQbAb">Wireflow</a>
+  </p>
+</div>
 
-a rest-ful api project
+# Snackbox
 
-Run project with:
+[![Go.Dev reference](https://img.shields.io/badge/echo-reference-blue?logo=go&logoColor=blue)](https://github.com/labstack/echo)
+[![Go.Dev reference](https://img.shields.io/badge/gorm-reference-blue?logo=go&logoColor=blue)](https://pkg.go.dev/gorm.io/gorm?tab=doc)
+[![Go.Dev reference](https://img.shields.io/badge/aws--s3-reference-orange)](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/go/example_code/s3)
+[![Go.Dev reference](https://img.shields.io/badge/maroto-reference-blue)](https://pkg.go.dev/github.com/johnfercher/maroto?tab=doc)
 
+Organizations or offices need to set up a consumption section that is in charge of providing food, where they have to find restaurants and contact them all the time to track their orders to ensure the orders are processed properly.
+
+Snackbox can make it easier for customers to order snacks and rice boxes and do tracking, providing security for customers because the connected partners have passed the verification process and this application will provide employment for partners.
+
+## Features
+
+- JWT Authentication
+- Multi Role Middleware (Admin, Partner, User)
+- Search Product By Nearest Partner Location
+- Payment Gateway Integration - Invoice & Disbursment (Xendit)
+- AWS S3 Integration
+- PDF Export (Maroto)
+
+## Installation
+
+- Clone this repo
+
+```bash
+git clone https://github.com/furqonzt99/snackbox.git snackbox
 ```
-go run main.go
+
+- Go to repository folder
+
+```bash
+cd snackbox
+go mod tidy
 ```
 
-## Stack-tech
+- Create .env file and add the following environment (you can see the variables from .env.example)
 
-- [x] RESTful API Using Go, Echo, Gorm, MySQL
-- [x] AWS for service api
+- Run this app
 
-## Open Endpoints
+```bash
+go run .
+```
 
-Open endpoints require no Authentication.
+## Use Case Diagram
 
-- Register : `POST /register`
-- Login : `POST /login `
+![Use Case Diagram](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-ucd.png)
 
-## Endpoints that require Authentication
+## Entity Relationship Diagram
 
-Closed endpoints require a valid Token to be included in the header of the request. A Token can be acquired from the Login view above.
+![Entity Relationship Diagram](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-erd.png)
 
-User related
+## High Level Architecture
 
-Each endpoint manipulates or displays information related to the User whose Token is provided with the request:
+![High Level Architecture](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-hla.png)
 
-- Get user profile data by User ID : `GET /profile`
-- Update user data by User ID : `PUT /users`
-- Delete user data by User ID : `DELETE /users`
+## Structure
 
-### Partner Related
+![Structure](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-structure.png)
 
-Each endpoint manipulates or displays information related to the partner whose Token is provided with the request:
+## Unit Test
 
-- User apply as Partner : `POST /partners/submission`
-- Upload legal document as Partner : `POST "/partners/submission/upload"`
-- Get Partner data & their Product : `GET /partners/:id`
-- Get report PDF as Partner : `GET /partners/report`
-- Get all Partner information by Admin : `GET /partners/submission`
-- Accept request User as Partner by Admin : `PUT /partners /submission/:id/accept`
-- Reject request User as Partner by Admin : `PUT /partners/submission/:id/reject`
+![Unit Test](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/test-result.png)
 
-### Product Related
+## Tech Stack
 
-Each endpoint manipulates or displays information related to the Product whose Token is provided with the request:
+- [Github](https://github.com/) - Versioning Platform
+- [Trello](https://trello.com/) - Collaboration Platform
+- [Go](https://go.dev/) - Project Language
+- [Echo](https://echo.labstack.com/) - Go Web Framework
+- [MySql](https://www.mysql.com/) - SQL Database
+- [Ngrok](https://ngrok.com/) - Expose local url to public url for test with third-party API
+- [Xendit](https://docs.xendit.co/) - Payment gateway API
+- [AWS S3](https://aws.amazon.com/s3/) - Object storage service
+- [AWS EC2](https://aws.amazon.com/ec2/) - Virtual computer service
+- [AWS RDS](https://aws.amazon.com/rds/) - Relational database service
+- [Docker](https://www.docker.com/) - Container Registry
+- [Kubernetes](https://kubernetes.io/) - Container Orchestration
 
-- Add a Product by Partner : `POST /products`
-- Update data Product by Partner : `PUT /products/:id`
-- Delete Product by Partner : `DELETE /products/:id`
-- Get All Product : `GET /products`
-- Upload image Product : PUT /products/:id/image`
+## Authors
+
+- [@furqonzt99](https://github.com/furqonzt99) - Product Owner & Developer
+- [@yogawahyudi7](https://github.com/yogawahyudi7) - Developer
