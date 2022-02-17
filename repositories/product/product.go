@@ -70,14 +70,9 @@ func (p *ProductRepository) GetAllProduct(offset, pageSize int, search, category
 	const EARTH_RADIUS_IN_KILOMETER = 6371 
 	const MAX_DISTANCE = 10 
 
-	if latitude != 0 && longtitude != 0 {
-		p.db.Raw("select id, (? * acos ( cos ( radians( ? ) ) * cos ( radians (latitude) ) * cos ( radians (longtitude) - radians( ? ) ) + sin(radians( ? )) * sin(radians(latitude)))) as distance from partners having distance < ? order by distance", EARTH_RADIUS_IN_KILOMETER, latitude, longtitude, latitude, MAX_DISTANCE).Scan(&nearestPartner)
-		p.db.Find(&products, "partner_id IN ?", nearestPartner)
-	}
+	p.db.Raw("SELECT id, (? * ACOS ( COS ( RADIANS ( ? ) ) * COS ( RADIANS (latitude) ) * COS ( RADIANS (longtitude) - RADIANS ( ? ) ) + SIN ( RADIANS ( ? ) ) * SIN ( RADIANS (latitude)))) AS distance FROM partners HAVING distance < ? ORDER BY distance", EARTH_RADIUS_IN_KILOMETER, latitude, longtitude, latitude, MAX_DISTANCE).Scan(&nearestPartner)
 
-	err := p.db.Offset(offset).Limit(pageSize).Where("title LIKE ? AND type LIKE ?", "%"+search+"%", "%"+category+"%").Find(&products).Error
-	if err != nil {
-		return nil, err
-	}
+	p.db.Offset(offset).Limit(pageSize).Where("partner_id IN ? AND title LIKE ? AND type LIKE ?", nearestPartner, "%"+search+"%", "%"+category+"%").Find(&products)
+	
 	return products, nil
 }
