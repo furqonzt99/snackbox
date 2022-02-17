@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/furqonzt99/snackbox/constants"
 	"github.com/furqonzt99/snackbox/delivery/common"
 	"github.com/furqonzt99/snackbox/delivery/controllers/product"
 	"github.com/furqonzt99/snackbox/delivery/middlewares"
@@ -77,8 +78,13 @@ func (tc *TransactionController) Order(c echo.Context) error {
 	productItems := []product.ProductResponse{}
 
 	for _, data := range transactionOrder.Products {
+		var productImage string
+			if data.Image != "" {
+				productImage = fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, data.Image)
+			}
 		productItems = append(productItems, product.ProductResponse{
 			Title:       data.Title,
+			Image:       productImage,
 			Type:        data.Type,
 			Description: data.Description,
 			Price:       data.Price,
@@ -222,8 +228,13 @@ func (tc TransactionController) GetAll(c echo.Context) error {
 
 		productItems := []product.ProductResponse{}
 		for _, item := range trx.Products {
+			var productImage string
+			if item.Image != "" {
+				productImage = fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, item.Image)
+			}
 			productItems = append(productItems, product.ProductResponse{
 				Title:       item.Title,
+				Image:       productImage,
 				Type:        item.Type,
 				Description: item.Description,
 				Price:       item.Price,
@@ -280,8 +291,13 @@ func (tc TransactionController) GetOne(c echo.Context) error {
 
 	productItems := []product.ProductResponse{}
 	for _, item := range data.Products {
+		var productImage string
+			if item.Image != "" {
+				productImage = fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, item.Image)
+			}
 		productItems = append(productItems, product.ProductResponse{
 			Title:       item.Title,
+			Image:       productImage,
 			Type:        item.Type,
 			Description: item.Description,
 			Price:       item.Price,

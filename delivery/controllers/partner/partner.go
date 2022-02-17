@@ -210,8 +210,13 @@ func (p PartnerController) GetPartnerProduct() echo.HandlerFunc {
 
 		productItems := []product.ProductResponse{}
 		for _, item := range partner.Products {
+			var productImage string
+			if item.Image != "" {
+				productImage = fmt.Sprintf(constants.LINK_TEMPLATE, constants.S3_BUCKET, constants.S3_REGION, item.Image)
+			}
 			productItems = append(productItems, product.ProductResponse{
 				Title:       item.Title,
+				Image:       productImage,
 				Type:        item.Type,
 				Description: item.Description,
 				Price:       item.Price,
