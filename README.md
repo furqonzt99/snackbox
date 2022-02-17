@@ -36,6 +36,33 @@ Snackbox can make it easier for customers to order snacks and rice boxes and do 
 - AWS S3 Integration
 - PDF Export (Maroto)
 
+## High Level Architecture
+
+![High Level Architecture](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-hla.png)
+
+## Tech Stack
+
+- [Github](https://github.com/) - Versioning Platform
+- [Trello](https://trello.com/) - Collaboration Platform
+- [Go](https://go.dev/) - Project Language
+- [Echo](https://echo.labstack.com/) - Go Web Framework
+- [MySql](https://www.mysql.com/) - SQL Database
+- [Ngrok](https://ngrok.com/) - Expose local url to public url for test with third-party API
+- [Xendit](https://docs.xendit.co/) - Payment gateway API
+- [AWS S3](https://aws.amazon.com/s3/) - Object storage service
+- [AWS EC2](https://aws.amazon.com/ec2/) - Virtual computer service
+- [AWS RDS](https://aws.amazon.com/rds/) - Relational database service
+- [Docker](https://www.docker.com/) - Container Registry
+- [Kubernetes](https://kubernetes.io/) - Container Orchestration
+
+## Structure
+
+![Structure](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-structure.png)
+
+## Unit Test
+
+![Unit Test](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/test-result.png)
+
 ## Installation
 
 - Clone this repo
@@ -58,33 +85,6 @@ go mod tidy
 ```bash
 go run .
 ```
-
-## High Level Architecture
-
-![High Level Architecture](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-hla.png)
-
-## Structure
-
-![Structure](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-structure.png)
-
-## Unit Test
-
-![Unit Test](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/test-result.png)
-
-## Tech Stack
-
-- [Github](https://github.com/) - Versioning Platform
-- [Trello](https://trello.com/) - Collaboration Platform
-- [Go](https://go.dev/) - Project Language
-- [Echo](https://echo.labstack.com/) - Go Web Framework
-- [MySql](https://www.mysql.com/) - SQL Database
-- [Ngrok](https://ngrok.com/) - Expose local url to public url for test with third-party API
-- [Xendit](https://docs.xendit.co/) - Payment gateway API
-- [AWS S3](https://aws.amazon.com/s3/) - Object storage service
-- [AWS EC2](https://aws.amazon.com/ec2/) - Virtual computer service
-- [AWS RDS](https://aws.amazon.com/rds/) - Relational database service
-- [Docker](https://www.docker.com/) - Container Registry
-- [Kubernetes](https://kubernetes.io/) - Container Orchestration
 
 ## Authors
 
