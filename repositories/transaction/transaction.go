@@ -193,9 +193,9 @@ func (tr *TransactionRepository) Confirm(trxID int, userID int) (models.Transact
 func (tr *TransactionRepository) GetAllForPartner(partnerID int) ([]models.Transaction, error) {
 	trx := []models.Transaction{}
 
-	const PAID_STATUS = "PAID"
+	const PENDING_STATUS = "PENDING"
 
-	if err := tr.db.Preload("User").Preload("Products").Where("partner_id = ? AND status = ?", partnerID, PAID_STATUS).Find(&trx).Error; err != nil {
+	if err := tr.db.Preload("User").Preload("Products").Where("partner_id = ? AND status <> ?", partnerID, PENDING_STATUS).Find(&trx).Error; err != nil {
 		return nil, err
 	}
 
