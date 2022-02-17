@@ -9,17 +9,19 @@ on:
 jobs:
 
   build:
-    name: Build
+
     runs-on: ubuntu-latest
+
     steps:
-      - name: executing remote ssh commands using password
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.KEY }}
-          port: ${{ secrets.PORT }}
-          script: |
-            cd snackbox
-            git pull
-            docker-compose down && docker-compose up --build -d
+    - uses: actions/checkout@v2
+    - name: docker login
+      env:
+        DOCKER_USER: ${{secrets.DOCKER_USER}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      run: |
+        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag furqonzt99/snackbox:$(date +%s)
+      
+    - name: Docker Push
+      run: docker push furqonzt99/snackbox
