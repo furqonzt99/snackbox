@@ -9,6 +9,10 @@
     <a href="https://app.swaggerhub.com/apis-docs/furqonzt99/snackbox/1">API Docs</a>
     ·
     <a href="https://whimsical.com/snackbox-UcYKhew5MBhFzJWaCXQbAb">Wireflow</a>
+    ·
+    <a href="https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-ucd.png">Use Case Diagram</a>
+    ·
+    <a href="https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-erd.png">Entity Relationship Diagram</a>
   </p>
 </div>
 
@@ -54,14 +58,6 @@ go mod tidy
 ```bash
 go run .
 ```
-
-## Use Case Diagram
-
-![Use Case Diagram](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-ucd.png)
-
-## Entity Relationship Diagram
-
-![Entity Relationship Diagram](https://github.com/furqonzt99/snackbox/blob/documentation/documentation/snackbox-erd.png)
 
 ## High Level Architecture
 
