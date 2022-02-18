@@ -80,9 +80,9 @@ go run .
 - [MySql](https://www.mysql.com/) - SQL Database
 - [Ngrok](https://ngrok.com/) - Expose local url to public url for test with third-party API
 - [Xendit](https://docs.xendit.co/) - Payment gateway API
-- [AWS S3](https://aws.amazon.com/s3/) - Object storage service
-- [AWS EC2](https://aws.amazon.com/ec2/) - Virtual computer service
 - [AWS RDS](https://aws.amazon.com/rds/) - Relational database service
+- [AWS S3](https://aws.amazon.com/s3/) - Object storage service
+- [Okteto](https://www.okteto.com/) - Kubernetes development platform
 - [Docker](https://www.docker.com/) - Container Registry
 - [Kubernetes](https://kubernetes.io/) - Container Orchestration
 
